@@ -397,10 +397,12 @@ MonoBehaviour:
   waves:
   - name: Wave 1
     enemiesAmount: 1
+    pointReward: 100
     delay: 1
     enemy: {fileID: 8829074601586966351, guid: 4518157d41bbdbd40b08bdd5df9db122, type: 3}
   - name: Wave 2
     enemiesAmount: 3
+    pointReward: 200
     delay: 1
     enemy: {fileID: 8829074601586966351, guid: 4518157d41bbdbd40b08bdd5df9db122, type: 3}
   timeBetweenWaves: 5

@@ -6,6 +6,7 @@ public class Wave
 {
     public string name;
     public int enemiesAmount;
+    public int pointReward;
     public float delay;
     public GameObject enemy;
 

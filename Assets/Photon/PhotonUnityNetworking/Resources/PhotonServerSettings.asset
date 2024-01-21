@@ -54,6 +54,7 @@ MonoBehaviour:
   - SpawnWaveRPC
   - WaveCountDownRPC
   - RPC_GetKill
+  - RPC_GetPoints
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1

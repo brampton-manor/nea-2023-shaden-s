@@ -191,7 +191,7 @@ public class Zombie : Enemy
         {
             dead = true;
             Die();
-            PlayerManager.Find(info.Sender).GetKill();
+            PlayerManager.Find(info.Sender).GetKill(25);
         }
     }
 
@@ -217,5 +217,6 @@ public class Zombie : Enemy
     {
         return FindObjectsOfType<PlayerManager>().SingleOrDefault(x => x.PV.Owner == player);
     }
+
 
 }

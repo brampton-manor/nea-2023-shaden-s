@@ -2,8 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using Photon.Pun;
+using Photon.Realtime;
 using System;
 using UnityEngine;
+using System.Linq;
 
 public class EnemySpawner : MonoBehaviourPunCallbacks
 {
@@ -145,6 +147,13 @@ public class EnemySpawner : MonoBehaviourPunCallbacks
     [PunRPC]
     public void CompleteWaveRPC()
     {
+        if (PhotonNetwork.IsMasterClient)
+        {
+            foreach (var playerManager in FindAll())
+            {
+                playerManager.GetPoints(waves[currentWave].pointReward);
+            }
+        }
         state = SpawnState.COUNTING;
         waveCountDown = timeBetweenWaves;
 
@@ -162,5 +171,10 @@ public class EnemySpawner : MonoBehaviourPunCallbacks
     void CompleteWave()
     {
         PV.RPC("CompleteWaveRPC", RpcTarget.All);
+    }
+
+    public static IEnumerable<PlayerManager> FindAll()
+    {
+        return FindObjectsOfType<PlayerManager>();
     }
 }

@@ -6,11 +6,13 @@ using TMPro;
 using UnityEngine.UI;
 using UnityEngine.Events;
 using Unity.VisualScripting;
+using System;
 
 public class SingleShotGun : Gun
 {
     
     int currentAmmo;
+    int magsize;
 
     private float currentDelay;
     private TrailRenderer BulletTrail;
@@ -42,15 +44,14 @@ public class SingleShotGun : Gun
 
     bool hitEnemy = false;
     bool hitPlayer = false;
+    bool hitItem = false;
     bool shooting, readyToShoot, reloading, aiming;
-
-    public UnityEvent<float> OnReloading;
-
     private void Awake()
     {
         PV = GetComponent<PhotonView>();
 
-        currentAmmo = ((GunInfo)itemInfo).magSize;
+        magsize = ((GunInfo)itemInfo).magSize;
+        currentAmmo = magsize;
         allowButtonHold = ((GunInfo)itemInfo).allowButtonHold;
         BulletTrail = ((GunInfo)itemInfo).bulletTrail.GetComponent<TrailRenderer>();
 
@@ -58,12 +59,6 @@ public class SingleShotGun : Gun
 
         reloadObject.gameObject.SetActive(false); // Hide UI
         HitDisable();
-    }
-
-    private void Start()
-    {
-
-        OnReloading?.Invoke(currentDelay);
     }
 
     void Update()
@@ -82,36 +77,46 @@ public class SingleShotGun : Gun
             
     }
 
+
+
     void CheckAiming()
-    {
+    {   
         targetRotation = Vector3.Lerp(targetRotation, Vector3.zero, ((GunInfo)itemInfo).returnSpeed * Time.deltaTime);
         currentRotation = Vector3.Slerp(currentRotation, targetRotation, ((GunInfo)itemInfo).snappiness * Time.fixedDeltaTime);
+
         cam.transform.localRotation = Quaternion.Lerp(cam.transform.localRotation, Quaternion.Euler(currentRotation), ((GunInfo)itemInfo).snappiness * Time.deltaTime);
+        activeWeapon.localRotation = Quaternion.Lerp(cam.transform.localRotation, Quaternion.Euler(currentRotation), ((GunInfo)itemInfo).snappiness * Time.deltaTime);
 
         if (Input.GetMouseButton(1))
         {
             aiming = true;
-            aimpoint.transform.localRotation = Quaternion.Euler(currentRotation);
-            cam.transform.localRotation = Quaternion.Euler(currentRotation);
             crosshair.gameObject.SetActive(false);
+            //adsPosition.rotation = cam.transform.rotation;
+            //adsPosition.transform.localRotation = Quaternion.Lerp(cam.transform.localRotation, Quaternion.Euler(currentRotation), ((GunInfo)itemInfo).snappiness * Time.deltaTime);
+
             weaponPosition = Vector3.Lerp(weaponPosition, adsPosition.localPosition, aimSpeed * Time.deltaTime);
             activeWeapon.localPosition = weaponPosition;
+
+            //aimpoint.transform.localRotation = Quaternion.Euler(currentRotation);
             SetFieldOfView(Mathf.Lerp(cam.fieldOfView, zoomRatio * _defaultFOV, aimSpeed * Time.deltaTime));
         }
         else
         {
-            aiming = false;
+            aiming = false; 
             crosshair.gameObject.SetActive(true);
+
             weaponPosition = Vector3.Lerp(weaponPosition, defaultPosition.localPosition, aimSpeed * Time.deltaTime);
             activeWeapon.localPosition = weaponPosition;
+            activeWeapon.localRotation = Quaternion.Euler(currentRotation);
+
             SetFieldOfView(Mathf.Lerp(cam.fieldOfView, _defaultFOV, aimSpeed * Time.deltaTime));
         }
     }
 
     public void RecoilFire()
     {
-        if (aiming) targetRotation += new Vector3(((GunInfo)itemInfo).recoilX, Random.Range(-((GunInfo)itemInfo).aimRecoilY, ((GunInfo)itemInfo).aimRecoilY), Random.Range(-((GunInfo)itemInfo).aimRecoilZ, ((GunInfo)itemInfo).aimRecoilZ));
-        else targetRotation += new Vector3(((GunInfo)itemInfo).recoilX, Random.Range(-((GunInfo)itemInfo).recoilY, ((GunInfo)itemInfo).recoilY), Random.Range(-((GunInfo)itemInfo).recoilZ, ((GunInfo)itemInfo).recoilZ));
+        if (aiming) targetRotation += new Vector3(((GunInfo)itemInfo).recoilX, UnityEngine.Random.Range(-((GunInfo)itemInfo).aimRecoilY, ((GunInfo)itemInfo).aimRecoilY), UnityEngine.Random.Range(-((GunInfo)itemInfo).aimRecoilZ, ((GunInfo)itemInfo).aimRecoilZ));
+        else targetRotation += new Vector3(((GunInfo)itemInfo).recoilX, UnityEngine.Random.Range(-((GunInfo)itemInfo).recoilY, ((GunInfo)itemInfo).recoilY), UnityEngine.Random.Range(-((GunInfo)itemInfo).recoilZ, ((GunInfo)itemInfo).recoilZ));
     }
     void SetFieldOfView(float fov)
     {
@@ -157,8 +162,10 @@ public class SingleShotGun : Gun
         {
             if (hit.collider.gameObject.tag == "Enemy") hitEnemy = true;
             if (hit.collider.gameObject.tag == "Player") hitPlayer = true;
+            if (hit.collider.gameObject.layer == 8) hitItem = true;
             hit.collider.gameObject.GetComponent<IDamageable>()?.TakeDamage(((GunInfo)itemInfo).damage);
         }
+        else hit.point = ray.GetPoint(50);
         PV.RPC("RPC_Shoot", RpcTarget.All, hit.point, hit.normal);
 
     }
@@ -166,25 +173,34 @@ public class SingleShotGun : Gun
     [PunRPC]
     void RPC_Shoot(Vector3 hitPosition, Vector3 hitNormal)
     {
-
+ 
         Instantiate(((GunInfo)itemInfo).muzzleFlash, firePoint.position, Quaternion.identity);
+        Instantiate(((GunInfo)itemInfo).bulletShell, firePoint.position, Quaternion.identity);
         TrailRenderer trail = Instantiate(BulletTrail, firePoint.position, Quaternion.identity);
         StartCoroutine(SpawnTrail(trail, hitPosition));
-        if (hitEnemy || hitPlayer)
+        if (hitItem)
         {
-            Instantiate(((GunInfo)itemInfo).bloodImpact, hitPosition, new Quaternion(0, 0, 0, 0)); // Enemy/ Player Impact
-            HitActive();
-            Invoke("HitDisable", 0.2f);
+            hitItem = false;
+            Invoke("ResetShot", ((GunInfo)itemInfo).timeBetweenShots);
         }
         else
-        {
-            Collider[] colliders = Physics.OverlapSphere(hitPosition, 0.3f);
-            if (colliders.Length != 0)  
+        {   
+            if (hitEnemy || hitPlayer)
             {
-                GameObject bulletImpactObj = Instantiate(((GunInfo)itemInfo).bulletImpact, hitPosition + hitNormal * 0.001f, Quaternion.LookRotation(hitNormal, Vector3.up) * ((GunInfo)itemInfo).bulletImpact.transform.rotation); // Bullet Impact
-                Destroy(bulletImpactObj, 10f);
-                bulletImpactObj.transform.SetParent(colliders[0].transform);
+                Instantiate(((GunInfo)itemInfo).bloodImpact, hitPosition, new Quaternion(0, 0, 0, 0)); // Enemy/ Player Impact
+                HitActive();
+                Invoke("HitDisable", 0.2f);
+            }
+            else
+            {
+                Collider[] colliders = Physics.OverlapSphere(hitPosition, 0.3f);
+                if (colliders.Length != 0)
+                {
+                    GameObject bulletImpactObj = Instantiate(((GunInfo)itemInfo).bulletImpact, hitPosition + hitNormal * 0.001f, Quaternion.LookRotation(hitNormal, Vector3.up) * ((GunInfo)itemInfo).bulletImpact.transform.rotation); // Bullet Impact
+                    Destroy(bulletImpactObj, 10f);
+                    bulletImpactObj.transform.SetParent(colliders[0].transform);
 
+                }
             }
         }
         hitEnemy = false;
@@ -195,7 +211,7 @@ public class SingleShotGun : Gun
     IEnumerator SpawnTrail(TrailRenderer Trail, Vector3 hitPoint)
     {
         float time = 0;
-        Vector3 startPosition = Trail.transform.position;
+        Vector3 startPosition = firePoint.position;
 
         while (time < 1)
         {

@@ -13,16 +13,17 @@ MonoBehaviour:
   m_Name: Rifle
   m_EditorClassIdentifier: 
   ItemName: Rifle
-  name: 
+  name: Rifle
   allowButtonHold: 1
   projectile: {fileID: 0}
   bulletTrail: {fileID: 3283993877217940934, guid: 273919da2662d614895d59c2ed413181, type: 3}
   muzzleFlash: {fileID: 3201448246424083796, guid: 3b26db122daece548b958886a4bb5e89, type: 3}
   bulletImpact: {fileID: 1000010844420130, guid: 9e8b5394302761b4aac584e1b49636b6, type: 3}
+  bulletShell: {fileID: 4542564807098512585, guid: cfcd37b8cf1cc7d43bf405cbad15eedf, type: 3}
   bloodImpact: {fileID: 5958846514259283196, guid: 2888c8e7a1313bd48abf0f91dfd7b628, type: 3}
   damage: 50
   maxDistance: 500
-  magSize: 999
+  magSize: 30
   recoilX: -5
   recoilY: 3
   recoilZ: 3

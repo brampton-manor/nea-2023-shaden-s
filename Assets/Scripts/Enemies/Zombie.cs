@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Photon.Pun;
 using Photon.Realtime;
 using UnityEngine;
@@ -8,6 +9,9 @@ using UnityEngine.AI;
 public class Zombie : Enemy
 {
     public float speed = 1.5f;
+
+    public float minAngle = 0f;
+    public float maxAngle = 0f;
 
     public NavMeshAgent agent;
 
@@ -33,6 +37,8 @@ public class Zombie : Enemy
     public bool playerInSightRange, playerInAttackRange;
 
     public int damage;
+
+    bool dead = false;
 
 
     void Awake()
@@ -146,6 +152,11 @@ public class Zombie : Enemy
         agent.SetDestination(transform.position);
 
         transform.LookAt(player);
+        Vector3 eulerAngles = transform.rotation.eulerAngles;
+        float clampedZ = Mathf.Clamp(eulerAngles.z, minAngle, maxAngle);
+        float clampedY = Mathf.Clamp(eulerAngles.y, minAngle, maxAngle);
+        float clampedX = Mathf.Clamp(eulerAngles.x, minAngle, maxAngle);
+        transform.rotation = Quaternion.Euler(clampedX, eulerAngles.y, clampedZ);
 
         if (!alreadyAttacked)
         {
@@ -169,16 +180,18 @@ public class Zombie : Enemy
     }
 
     [PunRPC]
-    void RPC_TakeDamage(float damage)
+    void RPC_TakeDamage(float damage, PhotonMessageInfo info)
     {
         if (!PV.IsMine)
             return;
 
         currentHealth -= damage;
 
-        if (currentHealth <= 0)
+        if (!dead && currentHealth <= 0)
         {
+            dead = true;
             Die();
+            PlayerManager.Find(info.Sender).GetKill();
         }
     }
 
@@ -200,11 +213,9 @@ public class Zombie : Enemy
         PV.RPC("DieRPC", RpcTarget.All);
     }
 
-    public void RotateToTarget()
+    public static PlayerManager Find(Player player)
     {
-        //transform.LookAt(player.transform);
-        Vector3 direction = player.position - transform.position;
-        Quaternion rotation = Quaternion.LookRotation(direction, Vector3.up);
-        transform.rotation = rotation;
+        return FindObjectsOfType<PlayerManager>().SingleOrDefault(x => x.PV.Owner == player);
     }
+
 }

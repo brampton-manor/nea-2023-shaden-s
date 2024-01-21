@@ -14,6 +14,7 @@ public class GunInfo : ItemInfo
     public GameObject bulletTrail;
     public GameObject muzzleFlash;
     public GameObject bulletImpact;
+    public GameObject bulletShell;
     public GameObject bloodImpact;
 
 

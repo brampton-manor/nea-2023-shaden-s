@@ -10,7 +10,7 @@ using System.Linq;
 public class EnemySpawner : MonoBehaviourPunCallbacks
 {
     public static EnemySpawner Instance;
-    public enum SpawnState { SPAWNING, WAITING, COUNTING, COMPLETED};
+    public enum SpawnState {SPAWNING, WAITING, COUNTING, COMPLETED};
     //VARIABLES
     [SerializeField] private Wave[] waves;
 

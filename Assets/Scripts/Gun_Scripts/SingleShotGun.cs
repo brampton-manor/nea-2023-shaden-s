@@ -13,6 +13,7 @@ public class SingleShotGun : Gun
     
     int currentAmmo;
     int magsize;
+    float damage;
 
     private float currentDelay;
     private TrailRenderer BulletTrail;
@@ -28,6 +29,7 @@ public class SingleShotGun : Gun
     [SerializeField] Image reloadBar;
     [SerializeField] Image crosshair;
     [SerializeField] Image hitmarker;
+    [SerializeField] Image crithitmarker;
 
     [SerializeField] Transform cameraHolder;
 
@@ -43,6 +45,7 @@ public class SingleShotGun : Gun
     Vector3 targetRotation;
 
     bool hitEnemy = false;
+    bool hitCrit  = false;
     bool hitPlayer = false;
     bool hitItem = false;
     bool shooting, readyToShoot, reloading, aiming;
@@ -50,6 +53,7 @@ public class SingleShotGun : Gun
     {
         PV = GetComponent<PhotonView>();
 
+        damage = ((GunInfo)itemInfo).damage;
         magsize = ((GunInfo)itemInfo).magSize;
         currentAmmo = magsize;
         allowButtonHold = ((GunInfo)itemInfo).allowButtonHold;
@@ -59,6 +63,7 @@ public class SingleShotGun : Gun
 
         reloadObject.gameObject.SetActive(false); // Hide UI
         HitDisable();
+        CritHitDisable();
     }
 
     void Update()
@@ -160,10 +165,12 @@ public class SingleShotGun : Gun
         if (!aiming) ray.origin = cam.transform.position;
         if (Physics.Raycast(ray, out RaycastHit hit)) // Range?
         {
-            if (hit.collider.gameObject.tag == "Enemy") hitEnemy = true;
+            if (hit.collider.gameObject.layer == 7) hitEnemy = true;
+            if (hit.collider.gameObject.layer == 7 && (hit.collider.gameObject.tag == "EnemyCrit")) hitCrit = true;
             if (hit.collider.gameObject.tag == "Player") hitPlayer = true;
             if (hit.collider.gameObject.layer == 8) hitItem = true;
-            hit.collider.gameObject.GetComponent<IDamageable>()?.TakeDamage(((GunInfo)itemInfo).damage);
+            if(hitCrit) hit.collider.gameObject.GetComponentInParent<IDamageable>()?.TakeDamage(damage * 1.5f);
+            else hit.collider.gameObject.GetComponent<IDamageable>()?.TakeDamage(damage);
         }
         else hit.point = ray.GetPoint(50);
         PV.RPC("RPC_Shoot", RpcTarget.All, hit.point, hit.normal);
@@ -188,8 +195,16 @@ public class SingleShotGun : Gun
             if (hitEnemy || hitPlayer)
             {
                 Instantiate(((GunInfo)itemInfo).bloodImpact, hitPosition, new Quaternion(0, 0, 0, 0)); // Enemy/ Player Impact
-                HitActive();
-                Invoke("HitDisable", 0.2f);
+                if (hitCrit)
+                {
+                    CritHitActive();
+                    Invoke("CritHitDisable", 0.2f);
+                }
+                else
+                {
+                    HitActive();
+                    Invoke("HitDisable", 0.2f);
+                }
             }
             else
             {
@@ -205,6 +220,7 @@ public class SingleShotGun : Gun
         }
         hitEnemy = false;
         hitPlayer = false;
+        hitCrit = false;
         Invoke("ResetShot", ((GunInfo)itemInfo).timeBetweenShots);
     }
 
@@ -235,6 +251,16 @@ public class SingleShotGun : Gun
         hitmarker.gameObject.SetActive(false);
     }
 
+    void CritHitActive()
+    {
+        crithitmarker.gameObject.SetActive(true);
+    }
+
+    void CritHitDisable()
+    {
+        crithitmarker.gameObject.SetActive(false);
+    }
+
 
     private void ResetShot()
     {
@@ -244,14 +270,16 @@ public class SingleShotGun : Gun
 
     public override void Reload()
     {
-        reloading = true;
-        reloadObject.gameObject.SetActive(true);
-        currentDelay = ((GunInfo)itemInfo).reloadTime;
-        readyToShoot = false;
-        shooting = false;
-        reloadText.text = "RELOADING";
-        Invoke("ReloadFinished", ((GunInfo)itemInfo).reloadTime);
-
+        if (currentAmmo < magsize) 
+        {
+            reloading = true;
+            reloadObject.gameObject.SetActive(true);
+            currentDelay = ((GunInfo)itemInfo).reloadTime;
+            readyToShoot = false;
+            shooting = false;
+            reloadText.text = "RELOADING";
+            Invoke("ReloadFinished", ((GunInfo)itemInfo).reloadTime);
+        }
 
     }
 

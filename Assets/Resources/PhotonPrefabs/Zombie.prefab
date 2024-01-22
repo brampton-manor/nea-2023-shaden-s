@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 5776384852690449845}
   m_Layer: 7
   m_Name: Cube
-  m_TagString: Untagged
+  m_TagString: EnemyCrit
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -28,8 +28,8 @@ Transform:
   m_GameObject: {fileID: 2949489051464477416}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.482, z: 0.308}
-  m_LocalScale: {x: 0.5493118, y: 0.30464867, z: 0.73479}
+  m_LocalPosition: {x: 0, y: 0.553, z: 0.297}
+  m_LocalScale: {x: 0.59, y: 0.3, z: 0.52}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 2356022873732114997}
@@ -62,7 +62,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: db3a42db9a470314d8e8e1adf6a1802f, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -172,7 +172,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 642fd138ad5eda34e870f4887d016d9c, type: 2}
+  - {fileID: 2100000, guid: cf256b3e8c9fbf148a4af58b822504dd, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -313,4 +313,4 @@ MonoBehaviour:
   attackRange: 1
   playerInSightRange: 0
   playerInAttackRange: 0
-  damage: 5
+  damage: 20

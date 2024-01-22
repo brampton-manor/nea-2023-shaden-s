@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Pistol
   m_EditorClassIdentifier: 
   ItemName: Pistol
-  name: Pistol
+  ItemIcon: {fileID: 21300000, guid: 532e1490963f11c4fa9c156a0ea94bc6, type: 3}
   allowButtonHold: 0
   projectile: {fileID: 0}
   bulletTrail: {fileID: 3283993877217940934, guid: 273919da2662d614895d59c2ed413181, type: 3}
@@ -21,7 +21,7 @@ MonoBehaviour:
   bulletImpact: {fileID: 1000010844420130, guid: 9e8b5394302761b4aac584e1b49636b6, type: 3}
   bulletShell: {fileID: 4542564807098512585, guid: cfcd37b8cf1cc7d43bf405cbad15eedf, type: 3}
   bloodImpact: {fileID: 5958846514259283196, guid: 2888c8e7a1313bd48abf0f91dfd7b628, type: 3}
-  damage: 25
+  damage: 15
   maxDistance: 300
   magSize: 18
   recoilX: -15

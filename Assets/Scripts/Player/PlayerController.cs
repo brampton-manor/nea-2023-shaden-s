@@ -5,6 +5,7 @@ using Hashtable = ExitGames.Client.Photon.Hashtable;
 using TMPro;
 using System;
 using Unity.VisualScripting;
+using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
 {
@@ -13,14 +14,22 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
     [SerializeField] TMP_Text ammo;
     [SerializeField] TMP_Text waveText;
     [SerializeField] TMP_Text lowReloadText;
+    [SerializeField] TMP_Text ItemName;
+    [SerializeField] Image ItemIcon;
     [SerializeField] GameObject ui;
     [SerializeField] Canvas Scoreboard;
+    [SerializeField] public Canvas PauseMenu;
+    [SerializeField] public Canvas SettingsMenu;
 
     [SerializeField] GameObject cameraHolder;
 
     [SerializeField] float mouseSensitivity, sprintSpeed, walkSpeed, jumpForce, smoothTime;
 
-    [SerializeField] Item[] items;
+    [SerializeField] public Item[] items;
+
+    public enum PlayerState {ALIVE, DOWNED, DEAD, PAUSED, UNPAUSED};
+    public PlayerState state = PlayerState.ALIVE;
+    public bool Controllable;
 
     int itemIndex;
     int previousItemIndex = -1;
@@ -66,7 +75,6 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
     {
         if (PV.IsMine)
         {
-
             EquipItem(0);
         }
         else
@@ -75,6 +83,8 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
             Destroy(rb);
             Destroy(ui);
         }
+
+        Controllable = true;
     }
 
     void Update()
@@ -82,103 +92,145 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
         if (!PV.IsMine)
             return;
 
-        Look();
-        Move();
-        Jump();
+        //Debug.Log(state);
 
-        currentState = EnemySpawner.Instance.GetState();
-        currentWave = EnemySpawner.Instance.GetWave();
-        currentCountdown = EnemySpawner.Instance.GetCountdown();
-        if (currentState == "COMPLETED")
+        if (Input.GetKeyDown(KeyCode.Escape))
         {
-            waveText.text = "ALL WAVES COMPLETED";
-        }
-        else if (currentState == "COUNTING")
-        {
-            waveText.text = currentCountdown;
-        }
-        else
-        {
-            waveText.text = "WAVE " + currentWave;
+            if (state != PlayerState.PAUSED) Pause();
+            else Resume();
         }
 
-        //UI Updates
-        currentAmmo = items[itemIndex].GetAmmo();
-        currentAmmoString = currentAmmo.ToString();
-        maxAmmo = items[itemIndex].GetMaxAmmo();
-        maxAmmoString = maxAmmo.ToString();
 
-        ammo.text = currentAmmoString + '/' + maxAmmoString;
-        CheckReloadText();
+        //|| (state == PlayerState.PAUSED && Input.GetKeyDown(KeyCode.Escape))
 
-        reloadState = items[itemIndex].GetReloadState();
-
-        for (int i = 0; i < items.Length; i++)
+        if (Controllable)
         {
-            if (Input.GetKeyDown((i + 1).ToString()) && !reloadState)
+
+            Look();
+            Move();
+            Jump();
+
+            currentState = EnemySpawner.Instance.GetState();
+            currentWave = EnemySpawner.Instance.GetWave();
+            currentCountdown = EnemySpawner.Instance.GetCountdown();
+            if (currentState == "COMPLETED")
             {
-                EquipItem(i);
-                break;
+                waveText.text = "ALL WAVES COMPLETED";
             }
-        }
-
-        if (!reloadState)
-        {
-            if (Input.GetAxisRaw("Mouse ScrollWheel") > 0f)
+            else if (currentState == "COUNTING")
             {
-                if (itemIndex >= items.Length - 1)
-                {
-                    EquipItem(0);
-                }
-                else
-                {
-                    EquipItem(itemIndex + 1);
-                }
+                waveText.text = currentCountdown;
             }
-            else if (Input.GetAxisRaw("Mouse ScrollWheel") < 0f)
+            else
             {
-                if (itemIndex <= 0)
+                waveText.text = "WAVE " + currentWave;
+            }
+
+            //UI Updates
+            SetItemUI();
+            currentAmmo = items[itemIndex].GetAmmo();
+            currentAmmoString = currentAmmo.ToString();
+            maxAmmo = items[itemIndex].GetMaxAmmo();
+            maxAmmoString = maxAmmo.ToString();
+
+            ammo.text = currentAmmoString + '/' + maxAmmoString;
+            CheckReloadText();
+
+            reloadState = items[itemIndex].GetReloadState();
+
+            for (int i = 0; i < items.Length; i++)
+            {
+                if (Input.GetKeyDown((i + 1).ToString()) && !reloadState)
                 {
-                    EquipItem(items.Length - 1);
-                }
-                else
-                {
-                    EquipItem(itemIndex - 1);
+                    EquipItem(i);
+                    break;
                 }
             }
-        }
 
-
-        if (items[itemIndex].GetButtonHold())
-        {
-            if (Input.GetMouseButton(0))
+            if (!reloadState)
             {
-                items[itemIndex].Use();
+                if (Input.GetAxisRaw("Mouse ScrollWheel") > 0f)
+                {
+                    if (itemIndex >= items.Length - 1)
+                    {
+                        EquipItem(0);
+                    }
+                    else
+                    {
+                        EquipItem(itemIndex + 1);
+                    }
+                }
+                else if (Input.GetAxisRaw("Mouse ScrollWheel") < 0f)
+                {
+                    if (itemIndex <= 0)
+                    {
+                        EquipItem(items.Length - 1);
+                    }
+                    else
+                    {
+                        EquipItem(itemIndex - 1);
+                    }
+                }
             }
-        }
-        else
-        {
-            if (Input.GetMouseButtonDown(0))
+
+
+            if (items[itemIndex].GetButtonHold())
             {
-                items[itemIndex].Use();
+                if (Input.GetMouseButton(0))
+                {
+                    items[itemIndex].Use();
+                }
             }
+            else
+            {
+                if (Input.GetMouseButtonDown(0))
+                {
+                    items[itemIndex].Use();
+                }
+            }
+
+            if (Input.GetKeyDown(KeyCode.R))
+            {
+                items[itemIndex].Reload();
+            }
+
+            if (Input.GetKey(KeyCode.Tab)) Scoreboard.gameObject.SetActive(true);
+            else Scoreboard.gameObject.SetActive(false);
+
+
+
         }
-
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            items[itemIndex].Reload();
-        }
-
-        if (Input.GetKey(KeyCode.Tab)) Scoreboard.gameObject.SetActive(true);
-        else Scoreboard.gameObject.SetActive(false);
-
-
 
         if (transform.position.y < -15f)
         {
             Die();
         }
 
+    }
+
+    public void Resume()
+    {
+        PauseMenu.gameObject.SetActive(false);
+        SettingsMenu.gameObject.SetActive(false);
+        state = PlayerState.UNPAUSED;
+        Controllable = true;
+        UnityEngine.Cursor.visible = false;
+        UnityEngine.Cursor.lockState = CursorLockMode.Locked;
+    }
+
+    public void Pause()
+    {
+        PauseMenu.gameObject.SetActive(true);
+        state = PlayerState.PAUSED;
+        Controllable = false;
+        UnityEngine.Cursor.visible = true;
+        UnityEngine.Cursor.lockState = CursorLockMode.Confined;
+    }
+
+    public void SetItemUI()
+    {
+        ItemIcon.sprite = items[itemIndex].itemInfo.ItemIcon;
+        ItemName.text = items[itemIndex].itemInfo.ItemName;
     }
 
     void Look()
@@ -250,12 +302,12 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
         if (!PV.IsMine)
             return;
 
-        rb.MovePosition(rb.position + transform.TransformDirection(moveAmount) * Time.fixedDeltaTime);
+        if(Controllable) rb.MovePosition(rb.position + transform.TransformDirection(moveAmount) * Time.fixedDeltaTime);
     }
 
     public void TakeDamage(float damage)
     {
-        PV.RPC("RPC_TakeDamage", PV.Owner, damage);
+        PV.RPC(nameof(RPC_TakeDamage), PV.Owner, damage);
     }
 
     [PunRPC]
@@ -274,6 +326,11 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
     void Die()
     {
         playerManager.Die();
+    }
+
+    public string GetState()
+    {
+        return state.ToString();
     }
 
     void CheckReloadText()

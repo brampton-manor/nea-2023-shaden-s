@@ -140,7 +140,7 @@ public class RegisterUser : MonoBehaviour
 
     public bool CheckInputs()
     {
-        if (PasswordIsValid(PasswordInput.text) && UsernameIsValid(UsernameInput.text))
+        if (UsernameIsValid(UsernameInput.text) && PasswordIsValid(PasswordInput.text))
         {
             return true;
         }

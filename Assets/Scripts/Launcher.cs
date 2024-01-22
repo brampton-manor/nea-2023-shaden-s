@@ -125,6 +125,11 @@ namespace rip
             }
         }
 
+        public void QuitGame()
+        {
+            Application.Quit();
+        }
+
         public override void OnPlayerEnteredRoom(Player newPlayer)
         {
             Instantiate(PlayerListItemPrefab, playerListContent).GetComponent<PlayerListItem>().SetUp(newPlayer);

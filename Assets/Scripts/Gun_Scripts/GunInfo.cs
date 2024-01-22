@@ -6,7 +6,6 @@ using UnityEngine;
 public class GunInfo : ItemInfo
 {
     [Header("Info")]
-    public new string name;
     public bool allowButtonHold;
 
     [Header("Graphics")]

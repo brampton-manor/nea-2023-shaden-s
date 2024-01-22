@@ -7,6 +7,7 @@ using Hashtable = ExitGames.Client.Photon.Hashtable;
 using System.Linq;
 using System.IO;
 using UnityEngine;
+using static EnemySpawner;
 
 public class PlayerManager : MonoBehaviour
 {
@@ -28,6 +29,7 @@ public class PlayerManager : MonoBehaviour
             CreateController();
         }
     }
+
 
     void CreateController()
     {

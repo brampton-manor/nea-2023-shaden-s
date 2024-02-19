@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Photon.Pun;
 using Photon.Realtime;
+using Photon.Pun;
 using TMPro;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
 using System.Linq;
@@ -30,18 +31,14 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
-
     void CreateController()
     {
         Transform spawnpoint = SpawnManager.Instance.GetSpawnpoint();
         controller = PhotonNetwork.Instantiate(Path.Combine("PhotonPrefabs", "PlayerController"), spawnpoint.position, spawnpoint.rotation, 0, new object[] { PV.ViewID });
     }
 
-    public void Die()
+    public void Downed()
     {
-        PhotonNetwork.Destroy(controller);
-        CreateController();
-
         deaths++;
 
         Hashtable hash = new Hashtable();
@@ -90,4 +87,26 @@ public class PlayerManager : MonoBehaviour
     {
         return FindObjectsOfType<PlayerManager>();
     }
+
+    public int Points()
+    {
+        return points;
+    }
+
+    public void ReducePoints(int pointslost = 0)
+    {
+        PV.RPC(nameof(RPC_ReducePoints), PV.Owner, pointslost);
+    }
+
+    [PunRPC]
+    void RPC_ReducePoints(int pointslost)
+    {
+        points = points - pointslost;
+
+        Hashtable hash = new Hashtable();
+        hash.Add("points", points);
+        PhotonNetwork.LocalPlayer.SetCustomProperties(hash);
+    }
+
+
 }

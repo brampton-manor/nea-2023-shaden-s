@@ -16,11 +16,11 @@ MonoBehaviour:
   ItemIcon: {fileID: 21300000, guid: 332f3aa8db1da55479476f86beaef16f, type: 3}
   allowButtonHold: 0
   projectile: {fileID: 0}
-  bulletTrail: {fileID: 0}
-  muzzleFlash: {fileID: 0}
-  bulletImpact: {fileID: 0}
-  bulletShell: {fileID: 0}
-  bloodImpact: {fileID: 0}
+  bulletTrail: {fileID: 3283993877217940934, guid: 273919da2662d614895d59c2ed413181, type: 3}
+  muzzleFlash: {fileID: 157586, guid: 2574ca206a571a342a7fab69fdfb87aa, type: 3}
+  bulletImpact: {fileID: 2462405574108921655, guid: e6d36bb0ebdf6cc4dacdeee8b6e8a0ce, type: 3}
+  bulletShell: {fileID: 4542564807098512585, guid: cfcd37b8cf1cc7d43bf405cbad15eedf, type: 3}
+  bloodImpact: {fileID: 5958846514259283196, guid: 2888c8e7a1313bd48abf0f91dfd7b628, type: 3}
   damage: 150
   maxDistance: 0
   magSize: 3
@@ -34,3 +34,4 @@ MonoBehaviour:
   returnSpeed: 4
   timeBetweenShots: 3
   reloadTime: 5
+  shootSound: {fileID: 0}

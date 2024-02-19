@@ -8,7 +8,7 @@ using UnityEngine.AI;
 
 public class Zombie : Enemy
 {
-    public float speed = 1.5f;
+    public float speed;
 
     public float minAngle = 0f;
     public float maxAngle = 0f;
@@ -22,7 +22,7 @@ public class Zombie : Enemy
     public LayerMask whatIsGround, whatIsPlayer;
 
 
-    //Patroling
+    //Patrolling
     public Vector3 walkPoint;
     bool walkPointSet;
     public float walkPointRange;
@@ -30,6 +30,7 @@ public class Zombie : Enemy
     //Attacking
     public float timeBetweenAttacks;
     bool alreadyAttacked;
+    bool prepareToAttack = false;
     public GameObject projectile;
 
     //States
@@ -49,30 +50,42 @@ public class Zombie : Enemy
 
     public void Update()
     {
-
         if (currentHealth <= 0 && !isDead) Die();
         if (isDead) return;
+
         GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
-        if (players.Length == 0) return;
+
+        if (players.Length == 0) Patrolling();
+
         player = FindNearestPlayer(players);
-        if (player == null)
+
+        if (player == null || !IsPlayerValid(player))
         {
+            Patrolling();
             return;
         }
+
         playerInSightRange = Physics.CheckSphere(transform.position, sightRange, whatIsPlayer);
         playerInAttackRange = Physics.CheckSphere(transform.position, attackRange, whatIsPlayer);
 
-        if (!playerInSightRange && !playerInAttackRange) Patroling();
+        if (!playerInSightRange && !playerInAttackRange) Patrolling();
         if (playerInSightRange && !playerInAttackRange) ChasePlayer();
-        if (playerInAttackRange && playerInSightRange) AttackPlayer();
+        if (playerInAttackRange && playerInSightRange && IsPlayerNextToEnemy()) AttackPlayer();
+    }
+    private bool IsPlayerNextToEnemy()
+    {
+        if (player != null)
+        {
+            float distanceToPlayer = Vector3.Distance(transform.position, player.position);
+            return distanceToPlayer <= attackRange;
+        }
+        return false;
+    }
 
-        
-
-        //AI
-        //if (health > 0){
-        //RotateToTarget();
-        //transform.Translate(Vector3.forward * Time.deltaTime * speed);
-        //}
+    private bool IsPlayerValid(Transform player)
+    {
+        PlayerController playerController = player.GetComponent<PlayerController>();
+        return playerController != null && !playerController.isDowned && playerController.state != PlayerController.PlayerState.DEAD;
     }
 
     private Transform FindNearestPlayer(GameObject[] players)
@@ -82,12 +95,16 @@ public class Zombie : Enemy
 
         foreach (GameObject playerObj in players)
         {
-            float distance = Vector3.Distance(transform.position, playerObj.transform.position);
+            Transform playerTransform = playerObj.transform;
 
-            if (distance < minDistance)
+            if (IsPlayerValid(playerTransform))
             {
-                minDistance = distance;
-                nearestPlayer = playerObj.transform;
+                float distance = Vector3.Distance(transform.position, playerTransform.position);
+                if (distance < minDistance)
+                {
+                    minDistance = distance;
+                    nearestPlayer = playerTransform;
+                }
             }
         }
 
@@ -95,7 +112,7 @@ public class Zombie : Enemy
     }
 
     [PunRPC]
-    void PatrolingRPC()
+    void PatrollingRPC()
     {
         if (!walkPointSet) SearchWalkPoint();
 
@@ -108,10 +125,12 @@ public class Zombie : Enemy
         if (distanceToWalkPoint.magnitude < 1f)
             walkPointSet = false;
     }
-    void Patroling()
+
+    void Patrolling()
     {
-        PV.RPC("PatrolingRPC", RpcTarget.All);
+        PV.RPC("PatrollingRPC", RpcTarget.All);
     }
+
     void SearchWalkPoint()
     {
         //Calculate random point in range
@@ -127,11 +146,13 @@ public class Zombie : Enemy
     [PunRPC]
     void ChasePlayerRPC()
     {
-        if (PV != null && PV.IsMine) // Check if the PhotonView exists and is owned by the local player
+        if (PV != null && PV.IsMine && player != null) // Check if the PhotonView exists, is owned by the local player, and player is not null
         {
             agent.SetDestination(player.position);
+            // Add your animation control here if needed
         }
     }
+
     private void ChasePlayer()
     {
         PV.RPC("ChasePlayerRPC", RpcTarget.AllBuffered);
@@ -139,17 +160,19 @@ public class Zombie : Enemy
 
     void AttackPlayer()
     {
+        agent.SetDestination(transform.position);
         PV.RPC("AttackPlayerRPC", RpcTarget.All);
+
     }
 
     [PunRPC]
     void AttackPlayerRPC()
     {
-
-        if (!PV.IsMine)
+        if (!PV.IsMine || player == null)
             return;
+
         // Make sure enemy doesn't move
-        agent.SetDestination(transform.position);
+        //GetComponent<Animator>().Play("Z_Attack");
 
         transform.LookAt(player);
         Vector3 eulerAngles = transform.rotation.eulerAngles;
@@ -172,7 +195,6 @@ public class Zombie : Enemy
         alreadyAttacked = false;
     }
 
- 
 
     public override void TakeDamage(float damage)
     {
@@ -196,20 +218,17 @@ public class Zombie : Enemy
     }
 
     [PunRPC]
-
-    void DieRPC()
+    public void DieRPC()
     {
         isDead = true;
-        agent.SetDestination(transform.position);
         agent.speed = 0;
-        speed = 0;
+        agent.SetDestination(transform.position);
 
         Destroy(gameObject, 3f);
     }
 
     public override void Die()
     {
-        // Call the DieRPC method over the network
         PV.RPC("DieRPC", RpcTarget.All);
     }
 
@@ -218,5 +237,8 @@ public class Zombie : Enemy
         return FindObjectsOfType<PlayerManager>().SingleOrDefault(x => x.PV.Owner == player);
     }
 
-
+    public override float GetHealth()
+    {
+        return currentHealth;
+    }
 }

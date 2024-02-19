@@ -41,9 +41,23 @@ public class RoomManager : MonoBehaviourPunCallbacks
         }
     }
 
-    // Update is called once per frame
-    void Update()
+    public void CleanUp()
     {
-        
+        if (PhotonNetwork.IsMasterClient) PhotonNetwork.DestroyAll(); // Destroy all Photon network instantiated objects
     }
+
+    // Handle leaving the room or returning to the main menu
+    public void LeaveRoom()
+    {
+        PhotonNetwork.LeaveRoom(); // Leave the current room
+        CleanUp(); // Clean up instantiated objects
+    }
+
+    public void ReturnToMenu()
+    {
+        LeaveRoom(); // Leave the current room
+        SceneManager.LoadScene(0); // Load the main menu scene
+        Destroy(gameObject); // Destroy the RoomManager instance
+    }
+
 }

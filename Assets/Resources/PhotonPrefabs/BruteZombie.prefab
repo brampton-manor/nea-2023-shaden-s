@@ -1,0 +1,147 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &8301799018655485230
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 335734597576193477, guid: 4518157d41bbdbd40b08bdd5df9db122, type: 3}
+      propertyPath: speed
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 335734597576193477, guid: 4518157d41bbdbd40b08bdd5df9db122, type: 3}
+      propertyPath: damage
+      value: 40
+      objectReference: {fileID: 0}
+    - target: {fileID: 335734597576193477, guid: 4518157d41bbdbd40b08bdd5df9db122, type: 3}
+      propertyPath: maxHealth
+      value: 200
+      objectReference: {fileID: 0}
+    - target: {fileID: 335734597576193477, guid: 4518157d41bbdbd40b08bdd5df9db122, type: 3}
+      propertyPath: attackRange
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 335734597576193477, guid: 4518157d41bbdbd40b08bdd5df9db122, type: 3}
+      propertyPath: currentHealth
+      value: 200
+      objectReference: {fileID: 0}
+    - target: {fileID: 335734597576193477, guid: 4518157d41bbdbd40b08bdd5df9db122, type: 3}
+      propertyPath: walkPointRange
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 698839328404943457, guid: 4518157d41bbdbd40b08bdd5df9db122, type: 3}
+      propertyPath: m_Name
+      value: Zombie Variant
+      objectReference: {fileID: 0}
+    - target: {fileID: 2356022873732114997, guid: 4518157d41bbdbd40b08bdd5df9db122, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 2356022873732114997, guid: 4518157d41bbdbd40b08bdd5df9db122, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2356022873732114997, guid: 4518157d41bbdbd40b08bdd5df9db122, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3380284344755126816, guid: 4518157d41bbdbd40b08bdd5df9db122, type: 3}
+      propertyPath: m_Speed
+      value: 1.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3380284344755126816, guid: 4518157d41bbdbd40b08bdd5df9db122, type: 3}
+      propertyPath: m_Height
+      value: 2.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3380284344755126816, guid: 4518157d41bbdbd40b08bdd5df9db122, type: 3}
+      propertyPath: m_Radius
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3380284344755126816, guid: 4518157d41bbdbd40b08bdd5df9db122, type: 3}
+      propertyPath: m_AgentTypeID
+      value: 1479372276
+      objectReference: {fileID: 0}
+    - target: {fileID: 3380284344755126816, guid: 4518157d41bbdbd40b08bdd5df9db122, type: 3}
+      propertyPath: m_AutoBraking
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3380284344755126816, guid: 4518157d41bbdbd40b08bdd5df9db122, type: 3}
+      propertyPath: m_WalkableMask
+      value: 4294967295
+      objectReference: {fileID: 0}
+    - target: {fileID: 3380284344755126816, guid: 4518157d41bbdbd40b08bdd5df9db122, type: 3}
+      propertyPath: m_AutoTraverseOffMeshLink
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3662511169716823045, guid: 4518157d41bbdbd40b08bdd5df9db122, type: 3}
+      propertyPath: m_LocalScale.x
+      value: -0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3662511169716823045, guid: 4518157d41bbdbd40b08bdd5df9db122, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0.03
+      objectReference: {fileID: 0}
+    - target: {fileID: 4389013222926394108, guid: 4518157d41bbdbd40b08bdd5df9db122, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 642fd138ad5eda34e870f4887d016d9c, type: 2}
+    - target: {fileID: 5754758636029128658, guid: 4518157d41bbdbd40b08bdd5df9db122, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 24fa75d184f39a846bf442fdddb57e10, type: 2}
+    - target: {fileID: 6018969001908692763, guid: 4518157d41bbdbd40b08bdd5df9db122, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6018969001908692763, guid: 4518157d41bbdbd40b08bdd5df9db122, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6018969001908692763, guid: 4518157d41bbdbd40b08bdd5df9db122, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6018969001908692763, guid: 4518157d41bbdbd40b08bdd5df9db122, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6018969001908692763, guid: 4518157d41bbdbd40b08bdd5df9db122, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6018969001908692763, guid: 4518157d41bbdbd40b08bdd5df9db122, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6018969001908692763, guid: 4518157d41bbdbd40b08bdd5df9db122, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6018969001908692763, guid: 4518157d41bbdbd40b08bdd5df9db122, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6018969001908692763, guid: 4518157d41bbdbd40b08bdd5df9db122, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6018969001908692763, guid: 4518157d41bbdbd40b08bdd5df9db122, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6101276006150866219, guid: 4518157d41bbdbd40b08bdd5df9db122, type: 3}
+      propertyPath: sceneViewId
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8829074601586966351, guid: 4518157d41bbdbd40b08bdd5df9db122, type: 3}
+      propertyPath: m_Name
+      value: BruteZombie
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 4518157d41bbdbd40b08bdd5df9db122, type: 3}

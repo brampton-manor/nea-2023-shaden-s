@@ -12,12 +12,6 @@ EditorBuildSettings:
     path: Assets/Scenes/StartMap.unity
     guid: 9ae7c50b19f30064dacf490e6b03acd1
   - enabled: 1
-    path: Assets/Scenes/Training.unity
-    guid: 4f5a5c52b9d3d0c4cac05f72501ee99a
-  - enabled: 1
     path: Assets/Scenes/Login.unity
     guid: 931bb51779a23c347b70cd9e3cd3720c
-  - enabled: 0
-    path: Assets/Scenes/MainMenu.unity
-    guid: 21ff9e9c81d6b644392dd43d578893dd
   m_configObjects: {}

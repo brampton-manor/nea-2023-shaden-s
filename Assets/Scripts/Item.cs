@@ -7,6 +7,7 @@ public abstract class Item : MonoBehaviour
     public ItemInfo itemInfo;
     public GameObject itemGameObject;
     public bool allowButtonHold;
+    public bool isAbleToBeUsed;
 
     public abstract void Use();
 
@@ -17,6 +18,8 @@ public abstract class Item : MonoBehaviour
     public abstract int GetMaxAmmo();
 
     public abstract bool GetReloadState();
+
+    public abstract bool GetAimState();
 
     public abstract bool GetButtonHold();
 }

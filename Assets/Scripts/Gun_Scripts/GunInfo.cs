@@ -39,4 +39,7 @@ public class GunInfo : ItemInfo
     [Tooltip("Time Between Shots")] public float timeBetweenShots;
     public float reloadTime;
 
+    [Tooltip("Audio")]
+    public AudioClip shootSound;
+
 }

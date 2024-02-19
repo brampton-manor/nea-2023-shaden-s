@@ -30,7 +30,8 @@ namespace rip
         void Start() 
         {   
             Debug.Log("Connecting to Master");
-            PhotonNetwork.ConnectUsingSettings();
+            if (!PhotonNetwork.IsConnected) PhotonNetwork.ConnectUsingSettings();
+
         }
 
         public override void OnConnectedToMaster()

@@ -20,6 +20,10 @@ public class EnemySpawner : MonoBehaviourPunCallbacks
     public SpawnState state = SpawnState.COUNTING;
 
     public int currentWave;
+    int enemyCount;
+    int pointReward;
+    int bruteZombiesToSpawn = 1; 
+    int bruteZombiesSpawned = 0;
 
     //[SerializeField] TMP_Text waveText;
 
@@ -28,6 +32,7 @@ public class EnemySpawner : MonoBehaviourPunCallbacks
     //REFERENCES
     [SerializeField] private Transform[] spawners;
     [SerializeField] private List<Enemy> enemyList;
+    [SerializeField] GameObject zombie;
 
     void Awake()
     {
@@ -39,6 +44,8 @@ public class EnemySpawner : MonoBehaviourPunCallbacks
     {
         waveCountDown = timeBetweenWaves;
         currentWave = 0;
+        enemyCount = 5;
+        pointReward = 100;
     }
 
     public string GetState()
@@ -96,19 +103,21 @@ public class EnemySpawner : MonoBehaviourPunCallbacks
     [PunRPC]
     public void SpawnWaveRPC()
     {
-        StartCoroutine(SpawnWave(waves[currentWave]));
+        StartCoroutine(SpawnWave());
     }
 
-    IEnumerator SpawnWave(Wave wave)
+    IEnumerator SpawnWave()
     {
         state = SpawnState.SPAWNING;
 
         enemyList.Clear();
 
-        for (int i = 0; i < wave.enemiesAmount; i++)
+        bruteZombiesSpawned = 0;
+
+        for (int i = 0; i < enemyCount; i++)
         {
             SpawnZombie();
-            yield return new WaitForSeconds(wave.delay);
+            yield return new WaitForSeconds(2);
         }
 
         state = SpawnState.WAITING;
@@ -132,6 +141,13 @@ public class EnemySpawner : MonoBehaviourPunCallbacks
         GameObject newEnemy = PhotonNetwork.Instantiate(Path.Combine("PhotonPrefabs", "Zombie"), randomSpawner.position, randomSpawner.rotation);
         Enemy newEnemyStats = newEnemy.GetComponent<Enemy>();
         enemyList.Add(newEnemyStats);
+
+        if (currentWave % 3 == 0 && bruteZombiesSpawned < bruteZombiesToSpawn)
+        {
+            GameObject bruteZombie = PhotonNetwork.Instantiate(Path.Combine("PhotonPrefabs", "BruteZombie"), randomSpawner.position, randomSpawner.rotation);
+            enemyList.Add(bruteZombie.GetComponent<Enemy>());
+            bruteZombiesSpawned++;
+        }
     }
 
     bool EnemiesAreDead()
@@ -151,22 +167,19 @@ public class EnemySpawner : MonoBehaviourPunCallbacks
         {
             foreach (var playerManager in FindAll())
             {
-                playerManager.GetPoints(waves[currentWave].pointReward);
+                playerManager.GetPoints(pointReward);
             }
         }
+        enemyCount += 3;
+        pointReward += 150;
+
         state = SpawnState.COUNTING;
         waveCountDown = timeBetweenWaves;
 
-        if (currentWave + 1 > waves.Length - 1)
-        {
-            state = SpawnState.COMPLETED;
-            //waveText.text = "ALL WAVES COMPLETED";
-            //END GAME
-        }
-        else
-        {
-            currentWave++;
-        }
+        currentWave++;
+        if (currentWave % 3 == 0) bruteZombiesToSpawn++;
+
+
     }
     void CompleteWave()
     {

@@ -4,28 +4,24 @@ using UnityEngine;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
 using TMPro;
 using System;
-using Unity.VisualScripting;
 using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
 {
     [SerializeField] UnityEngine.UI.Image healthbarImage;
-    [SerializeField] TMP_Text healthbarText;
-    [SerializeField] TMP_Text ammo;
-    [SerializeField] TMP_Text waveText;
-    [SerializeField] TMP_Text lowReloadText;
-    [SerializeField] TMP_Text ItemName;
+    [SerializeField] TMP_Text healthbarText, ammo, waveText, lowReloadText, ItemName, InteractableName, PointsText, PoorText;
     [SerializeField] Image ItemIcon;
-    [SerializeField] GameObject ui;
-    [SerializeField] Canvas Scoreboard;
-    [SerializeField] public Canvas PauseMenu;
-    [SerializeField] public Canvas SettingsMenu;
-
-    [SerializeField] GameObject cameraHolder;
-
+    [SerializeField] GameObject ui, InteractableWindow, cameraHolder, itemHolder, AliveScreen, HitScreen;
+    [SerializeField] public Canvas PauseMenu, SettingsMenu, EndGameScreen, Scoreboard, DownedScreen;
     [SerializeField] float mouseSensitivity, sprintSpeed, walkSpeed, jumpForce, smoothTime;
 
     [SerializeField] public Item[] items;
+
+    [SerializeField] AudioClip holsterSound;
+    [SerializeField] AudioClip jumpSound;
+    [SerializeField] AudioClip shatterSound;
+
+    AudioSource audioSource;
 
     public enum PlayerState {ALIVE, DOWNED, DEAD, PAUSED, UNPAUSED};
     public PlayerState state = PlayerState.ALIVE;
@@ -35,14 +31,19 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
     int previousItemIndex = -1;
     int currentAmmo;
     int maxAmmo;
+    public int currentPoints;
 
     float verticalLookRotation;
 
     bool grounded;
     bool reloadState;
+    bool aimState;
+    public bool isDowned = false;
+    public bool isDead = false;
 
     string currentAmmoString;
     string maxAmmoString;
+    public string username;
 
     string currentState;
     string currentWave;
@@ -55,8 +56,8 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
 
     PhotonView PV;
 
-    const float maxHealth = 100f;
-    float currentHealth = maxHealth;
+    public float maxHealth = 100f;
+    public float currentHealth;
 
     PlayerManager playerManager;
 
@@ -64,15 +65,22 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
     {
         UnityEngine.Cursor.visible = false;
         UnityEngine.Cursor.lockState = CursorLockMode.Locked;
+
         rb = GetComponent<Rigidbody>();
         PV = GetComponent<PhotonView>();
+        audioSource = GetComponent<AudioSource>();
+
+        username = PhotonNetwork.NickName;
+
         Scoreboard.gameObject.SetActive(false);
+        PoorDisable();
 
         playerManager = PhotonView.Find((int)PV.InstantiationData[0]).GetComponent<PlayerManager>();
     }
 
     void Start()
     {
+        currentHealth = maxHealth;
         if (PV.IsMine)
         {
             EquipItem(0);
@@ -92,7 +100,11 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
         if (!PV.IsMine)
             return;
 
-        //Debug.Log(state);
+        GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
+
+        if (state == PlayerState.DEAD) return;
+
+        if (AreOtherPlayersDowned(players)) Die();
 
         if (Input.GetKeyDown(KeyCode.Escape))
         {
@@ -100,8 +112,12 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
             else Resume();
         }
 
-
-        //|| (state == PlayerState.PAUSED && Input.GetKeyDown(KeyCode.Escape))
+        if (isDowned)
+        {
+            Look();
+            DisableUI();
+        }
+        else ActivateUI();
 
         if (Controllable)
         {
@@ -109,6 +125,8 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
             Look();
             Move();
             Jump();
+
+            currentPoints = playerManager.Points();
 
             currentState = EnemySpawner.Instance.GetState();
             currentWave = EnemySpawner.Instance.GetWave();
@@ -128,6 +146,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
 
             //UI Updates
             SetItemUI();
+            UpdateHealthBar();
             currentAmmo = items[itemIndex].GetAmmo();
             currentAmmoString = currentAmmo.ToString();
             maxAmmo = items[itemIndex].GetMaxAmmo();
@@ -137,38 +156,44 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
             CheckReloadText();
 
             reloadState = items[itemIndex].GetReloadState();
+            aimState = items[itemIndex].GetAimState();
 
             for (int i = 0; i < items.Length; i++)
             {
-                if (Input.GetKeyDown((i + 1).ToString()) && !reloadState)
+                if (Input.GetKeyDown((i + 1).ToString()) && !reloadState && items[i].isAbleToBeUsed)
                 {
                     EquipItem(i);
                     break;
                 }
             }
 
-            if (!reloadState)
+            if (!reloadState && !aimState)
             {
                 if (Input.GetAxisRaw("Mouse ScrollWheel") > 0f)
                 {
-                    if (itemIndex >= items.Length - 1)
+                    int newIndex = itemIndex;
+                    do
                     {
-                        EquipItem(0);
-                    }
-                    else
+                        newIndex = (newIndex + 1) % items.Length;
+                    } while (!items[newIndex].isAbleToBeUsed && newIndex != itemIndex);
+
+                    if (items[newIndex].isAbleToBeUsed)
                     {
-                        EquipItem(itemIndex + 1);
+                        EquipItem(newIndex);
                     }
                 }
                 else if (Input.GetAxisRaw("Mouse ScrollWheel") < 0f)
                 {
-                    if (itemIndex <= 0)
+                    int newIndex = itemIndex;
+                    do
                     {
-                        EquipItem(items.Length - 1);
-                    }
-                    else
+                        newIndex = (newIndex - 1 + items.Length) % items.Length;
+                    } while (!items[newIndex].isAbleToBeUsed && newIndex != itemIndex);
+
+                    if (items[newIndex].isAbleToBeUsed)
                     {
-                        EquipItem(itemIndex - 1);
+                        
+                        EquipItem(newIndex);
                     }
                 }
             }
@@ -203,9 +228,17 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
 
         if (transform.position.y < -15f)
         {
-            Die();
+            TeleportToYLevel(1f);
+            GoDowned();
         }
 
+    }
+
+    void TeleportToYLevel(float targetY)
+    {
+        Vector3 newPosition = transform.position;
+        newPosition.y = targetY;
+        transform.position = newPosition;
     }
 
     public void Resume()
@@ -225,6 +258,93 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
         Controllable = false;
         UnityEngine.Cursor.visible = true;
         UnityEngine.Cursor.lockState = CursorLockMode.Confined;
+    }
+
+    public void PlayClip(AudioClip clip)
+    {
+        audioSource.PlayOneShot(clip, 1f);
+    }
+
+    public void PlayShatter()
+    {
+        audioSource.PlayOneShot(shatterSound, 1f);
+    }
+    public void SetBuyInteractUI(string ItemName, int PointsValue)
+    {
+        InteractableWindow.gameObject.SetActive(true);
+        InteractableName.text = ItemName;
+        PointsText.text = "Press E - Buy for " + PointsValue + " points";
+
+    }
+
+    public void SetInteractUI(string Item, string Text)
+    {
+        InteractableWindow.gameObject.SetActive(true);
+        InteractableName.text = Item;
+        PointsText.text = Text;
+
+    }
+
+    public void PoorEnable()
+    {
+        PoorText.gameObject.SetActive(true);
+        PoorText.text = "NOT ENOUGH POINTS";
+        PoorText.color = Color.red;
+        Invoke("PoorDisable", 2f);
+    }
+
+    public void AlreadyMaxHealth()
+    {
+        PoorText.gameObject.SetActive(true);
+        PoorText.text = "NOTHING TO HEAL";
+        PoorText.color = Color.yellow;
+        Invoke("PoorDisable", 2f);
+    }
+
+    public void PoorDisable()
+    {
+        PoorText.gameObject.SetActive(false);
+    }
+
+    public void BoughtEnable()
+    {
+        PoorText.gameObject.SetActive(true);
+        PoorText.text = "Added to Inventory";
+        PoorText.color = Color.green;
+        Invoke("BoughtDisable", 2f);
+    }
+
+    public void BoughtDisable()
+    {
+        PoorText.gameObject.SetActive(false);
+    }
+
+    public void HitEnable()
+    {
+        if(PV.IsMine) HitScreen.gameObject.SetActive(true);
+    }
+
+    public void HitDisable()
+    {
+        if(PV.IsMine) HitScreen.gameObject.SetActive(false);
+    }
+
+    public void AlreadyInInventoryEnable()
+    {
+        PoorText.gameObject.SetActive(true);
+        PoorText.text = "Already in inventory";
+        PoorText.color = Color.yellow;
+        Invoke("AlreadyInInventoryDisable", 2f);
+    }
+
+    public void AlreadyInInventoryDisable()
+    {
+        PoorText.gameObject.SetActive(false);
+    }
+
+    public void SpendPoints(int points)
+    {
+        playerManager.ReducePoints(points);
     }
 
     public void SetItemUI()
@@ -254,6 +374,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
     {
         if (Input.GetKeyDown(KeyCode.Space) && grounded)
         {
+            PlayClip(jumpSound);
             rb.AddForce(transform.up * jumpForce);
         }
     }
@@ -263,11 +384,11 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
         if (_index == previousItemIndex)
             return;
 
+        PlayClip(holsterSound);
+
         itemIndex = _index;
 
         items[itemIndex].itemGameObject.SetActive(true);
-
-        //ammo.text = items[itemIndex].GetAmmo().ToString();
 
         if (previousItemIndex != -1)
         {
@@ -313,19 +434,130 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
     [PunRPC]
     void RPC_TakeDamage(float damage, PhotonMessageInfo info)
     {
-        currentHealth -= damage;
+        if (!isDead && !isDowned)
+        {
+            HitEnable();
+            Invoke(nameof(HitDisable), 0.5f);
+            currentHealth -= damage;
+        }
+        if (currentHealth <= 0 && !isDowned && !isDead) GoDowned();
+    }
+
+    void UpdateHealthBar()
+    {
         healthbarImage.fillAmount = currentHealth / maxHealth;
         healthbarText.text = currentHealth.ToString();
-        if (currentHealth <= 0)
-        {
-            Die();
-            //PlayerManager.Find(info.Sender).GetKill();
-        }
     }
 
     void Die()
     {
-        playerManager.Die();
+        state = PlayerState.DEAD;
+        Controllable = false;
+        isDowned = false;
+        isDead = true;
+
+        EndGameScreen.gameObject.SetActive(true);
+        DownedScreen.gameObject.SetActive(false);
+        AliveScreen.gameObject.SetActive(false);
+        itemHolder.gameObject.SetActive(false);
+
+        UnityEngine.Cursor.visible = true;
+        UnityEngine.Cursor.lockState = CursorLockMode.Confined;
+    }
+
+    public void GoDowned()
+    {
+        GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
+        if (!AreOtherPlayersDowned(players))
+        {
+
+            PV.RPC(nameof(GoDownedRPC), RpcTarget.AllBuffered);
+
+            playerManager.Downed();
+            isDowned = true;
+            state = PlayerState.DOWNED;
+            Controllable = false;
+
+            transform.localScale = new Vector3(1f, 0.5f, 1f);
+            DisableUI();
+        }
+    }
+
+    [PunRPC]
+    public void GoDownedRPC()
+    {
+        isDowned = true;
+        state = PlayerState.DOWNED;
+        Controllable = false;
+        itemHolder.gameObject.SetActive(false);
+    }
+
+    public void ReviveUI()
+    {
+        InteractableWindow.gameObject.SetActive(true);
+        InteractableName.text = username;
+        PointsText.text = "Hold E to revive";
+
+    }
+
+    public void Revive()
+    {
+        transform.localScale = new Vector3(1f, 1f, 1f);
+        PV.RPC(nameof(ReviveRPC), RpcTarget.AllBuffered, transform.localScale);
+        isDowned = false;
+        state = PlayerState.ALIVE;
+        Controllable = true;
+        currentHealth = 100;
+    }
+
+    [PunRPC]
+    public void ReviveRPC(Vector3 revivedScale)
+    {
+        isDowned = false;
+        state = PlayerState.ALIVE;
+        Controllable = true;
+        currentHealth = 100;
+        itemHolder.gameObject.SetActive(true);
+        // Set the player's scale received from RPC
+        transform.localScale = revivedScale;
+    }
+
+    bool AreOtherPlayersDowned(GameObject[] players)
+    {
+        foreach (GameObject playerObj in players)
+        {
+            PlayerController playerController = playerObj.GetComponent<PlayerController>();
+
+            if (playerController != null && !playerController.isDowned)
+            {
+                return false;
+            }
+                
+        }
+        return true;
+
+    }
+
+    private void ActivateUI()
+    {
+        if (PV.IsMine)
+        {
+            // Activate objects here
+            DownedScreen.gameObject.SetActive(false);
+            AliveScreen.gameObject.SetActive(true);
+            itemHolder.gameObject.SetActive(true);
+        }
+    }
+
+    private void DisableUI()
+    {
+        if (PV.IsMine)
+        {
+            // Activate objects here
+            DownedScreen.gameObject.SetActive(true);
+            AliveScreen.gameObject.SetActive(false);
+            itemHolder.gameObject.SetActive(false);
+        }
     }
 
     public string GetState()
@@ -353,5 +585,10 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
         }
 
 
+    }
+
+    public float GetHealth()
+    {
+        return currentHealth;
     }
 }

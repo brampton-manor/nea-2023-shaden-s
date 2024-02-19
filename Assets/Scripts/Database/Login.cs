@@ -33,9 +33,14 @@ public class Login : MonoBehaviour
             }
             else
             {
-                DebugText.text = www.downloadHandler.text;
-                PhotonNetwork.NickName = username;
-                LoggedIn = true;
+                if (www.downloadHandler.text == "SUCCESS")
+                {
+                    PhotonNetwork.NickName = username;
+                    DebugText.text = "LOGGED IN";
+                    LoggedIn = true;
+                    Profile.Instance.UpdateProfile();
+                }
+                else DebugText.text = www.downloadHandler.text;
             }
         }
     }

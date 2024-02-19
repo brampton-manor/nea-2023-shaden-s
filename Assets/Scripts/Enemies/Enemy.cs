@@ -16,4 +16,6 @@ public abstract class Enemy : MonoBehaviourPunCallbacks, IDamageable
 
     public abstract void Die();
 
+    public abstract float GetHealth();
+
 }

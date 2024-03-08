@@ -14,22 +14,16 @@ public class RegisterUser : MonoBehaviour
     public TMP_Text DebugText;
     public Button RegisterButton;
 
-    bool Valid = false;
-
-    // Coroutine to create a user
     public IEnumerator CreateUser(string username, string password)
     {
-        // Create a new form to send data
         WWWForm form = new WWWForm();
         form.AddField("newUser", username);
         form.AddField("newPass", password);
 
-        // Send a UnityWebRequest to the server
         using (UnityWebRequest www = UnityWebRequest.Post("http://localhost/NEA/RegisterUser.php", form))
         {
             yield return www.SendWebRequest();
 
-            // Check if the request was successful
             if (www.result != UnityWebRequest.Result.Success)
             {
                 DebugText.text = www.error;
@@ -41,7 +35,6 @@ public class RegisterUser : MonoBehaviour
         }
     }
 
-    // Check if password contains at least one lowercase character
     bool CheckIfLowerCase(string password)
     {
         if (password.Any(char.IsLower)) return true;

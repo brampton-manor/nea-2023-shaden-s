@@ -25,7 +25,7 @@ public class HealthItem : MonoBehaviour
     public void HealPlayer(PlayerController player)
     {
         if (player.currentPoints < requiredPoints) player.PoorEnable();
-        if (player.currentHealth == player.maxHealth) player.AlreadyMaxHealth();
+        else if (player.currentHealth == player.maxHealth) player.AlreadyMaxHealth();
         else
         {
             if (player.currentHealth + healAmount >= player.maxHealth) player.currentHealth = player.maxHealth;

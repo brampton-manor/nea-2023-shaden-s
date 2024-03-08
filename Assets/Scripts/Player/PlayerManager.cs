@@ -23,18 +23,32 @@ public class PlayerManager : MonoBehaviour
     {
         PV = GetComponent<PhotonView>();
     }
+
     void Start()
     {
         if (PV.IsMine)
         {
-            CreateController();
+            StartCoroutine(WaitForSpawnPoints());
         }
+    }
+
+    IEnumerator WaitForSpawnPoints()
+    {
+        // Wait until the spawn points are ready
+        while (!SpawnManager.Instance.IsSpawnPointsReady)
+        {
+            yield return new WaitForSeconds(0.5f);
+        }
+
+        CreateController();
     }
 
     void CreateController()
     {
-        Transform spawnpoint = SpawnManager.Instance.GetSpawnpoint();
-        controller = PhotonNetwork.Instantiate(Path.Combine("PhotonPrefabs", "PlayerController"), spawnpoint.position, spawnpoint.rotation, 0, new object[] { PV.ViewID });
+        Debug.Log("Spawning player controller...");
+        Vector3 spawnpoint = SpawnManager.Instance.GetSpawnpoint(); // Safe to call now
+        spawnpoint.y = 2; // Adjust spawn height
+        controller = PhotonNetwork.Instantiate(Path.Combine("PhotonPrefabs", "PlayerController"), spawnpoint, Quaternion.identity, 0, new object[] { PV.ViewID });
     }
 
     public void Downed()

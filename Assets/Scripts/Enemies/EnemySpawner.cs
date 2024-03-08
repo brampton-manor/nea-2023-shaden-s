@@ -19,20 +19,21 @@ public class EnemySpawner : MonoBehaviourPunCallbacks
 
     public SpawnState state = SpawnState.COUNTING;
 
+    public MapGenerator mapGenerator;
+
     public int currentWave;
     int enemyCount;
     int pointReward;
     int bruteZombiesToSpawn = 1; 
     int bruteZombiesSpawned = 0;
 
-    //[SerializeField] TMP_Text waveText;
+    public List<Enemy> enemyList;
 
     PhotonView PV;
 
-    //REFERENCES
-    [SerializeField] private Transform[] spawners;
-    [SerializeField] private List<Enemy> enemyList;
-    [SerializeField] GameObject zombie;
+    public List<Vector3> spawners;
+    
+    bool spawnsGenerated = false;
 
     void Awake()
     {
@@ -44,9 +45,25 @@ public class EnemySpawner : MonoBehaviourPunCallbacks
     {
         waveCountDown = timeBetweenWaves;
         currentWave = 0;
-        enemyCount = 5;
+        enemyCount = 3;
         pointReward = 100;
+
+        mapGenerator = FindObjectOfType<MapGenerator>();
     }
+
+    IEnumerator EnsureMapGeneratedBeforeSpawning()
+    {
+        while (!mapGenerator.mapGenerated)
+        {
+            yield return new WaitForSeconds(1);
+        }
+
+        spawners = mapGenerator.GetEdgeCellPositions();
+        spawnsGenerated = true;
+
+    }
+
+
 
     public string GetState()
     {
@@ -65,6 +82,7 @@ public class EnemySpawner : MonoBehaviourPunCallbacks
 
     void Update()
     {
+        if (!spawnsGenerated) StartCoroutine(EnsureMapGeneratedBeforeSpawning());
         if (PhotonNetwork.IsMasterClient)
         {
             if (state == SpawnState.COMPLETED) return;
@@ -128,7 +146,7 @@ public class EnemySpawner : MonoBehaviourPunCallbacks
     {
         if (PV.IsMine)
         {
-            int randomInt = UnityEngine.Random.Range(1, spawners.Length);
+            int randomInt = UnityEngine.Random.Range(1, spawners.Count);
             PV.RPC("SpawnZombieRPC", RpcTarget.MasterClient, randomInt);
         }
 
@@ -137,14 +155,14 @@ public class EnemySpawner : MonoBehaviourPunCallbacks
     [PunRPC]
     public void SpawnZombieRPC(int randomInt)
     {
-        Transform randomSpawner = spawners[randomInt];
-        GameObject newEnemy = PhotonNetwork.Instantiate(Path.Combine("PhotonPrefabs", "Zombie"), randomSpawner.position, randomSpawner.rotation);
+        Vector3 randomSpawner = spawners[randomInt];
+        GameObject newEnemy = PhotonNetwork.Instantiate(Path.Combine("PhotonPrefabs", "Zombie"), randomSpawner, Quaternion.identity);
         Enemy newEnemyStats = newEnemy.GetComponent<Enemy>();
         enemyList.Add(newEnemyStats);
 
         if (currentWave % 3 == 0 && bruteZombiesSpawned < bruteZombiesToSpawn)
         {
-            GameObject bruteZombie = PhotonNetwork.Instantiate(Path.Combine("PhotonPrefabs", "BruteZombie"), randomSpawner.position, randomSpawner.rotation);
+            GameObject bruteZombie = PhotonNetwork.Instantiate(Path.Combine("PhotonPrefabs", "BruteZombie"), randomSpawner, Quaternion.identity);
             enemyList.Add(bruteZombie.GetComponent<Enemy>());
             bruteZombiesSpawned++;
         }

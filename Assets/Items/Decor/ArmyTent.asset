@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 117c2066082f04342b76f3ed6e7080ba, type: 3}
+  m_Name: ArmyTent
+  m_EditorClassIdentifier: 
+  Name: ArmyTent
+  sizeX: 25
+  sizeY: 25
+  requiresNetworking: 0
+  Prefab: {fileID: 5312076440481438204, guid: 4a0e07b97114af74497ac29f198d6b2f, type: 3}

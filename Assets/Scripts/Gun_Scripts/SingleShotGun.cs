@@ -23,6 +23,8 @@ public class SingleShotGun : Gun
 
     [SerializeField] Camera cam;
 
+    [SerializeField] GameObject orbs;
+
     [SerializeField] Transform firePoint;
     [SerializeField] Transform aimpoint;
 
@@ -36,15 +38,13 @@ public class SingleShotGun : Gun
     [SerializeField] Transform cameraHolder;
 
     [SerializeField] Transform activeWeapon;
-    [SerializeField] Transform defaultPosition;
-    [SerializeField] Transform adsPosition;
-    [SerializeField] Vector3 weaponPosition; // set to 0 0 0 in inspector
-    [SerializeField] float aimSpeed = 0.25f; // time to enter ADS
-    [SerializeField] float _defaultFOV = 80f; // FOV in degrees
-    [SerializeField] float zoomRatio = 0.1f; // 1/zoom times
+    [SerializeField] Vector3 weaponPosition;
+    
 
     [SerializeField] AudioClip hitmarkerSound;
     [SerializeField] AudioClip killSound;
+
+    int orbLayerMask = 1 << 17;
 
     Vector3 currentRotation;
     Vector3 targetRotation;
@@ -57,6 +57,8 @@ public class SingleShotGun : Gun
     bool hitPlayer = false;
     bool hitItem = false;
     bool shooting, readyToShoot, reloading, aiming;
+
+    public bool isInspecting;
     private void Awake()
     {
         PV = GetComponent<PhotonView>();
@@ -71,6 +73,7 @@ public class SingleShotGun : Gun
 
         audioSource = GetComponent<AudioSource>();
 
+        orbs.gameObject.SetActive(false);
         reloadObject.gameObject.SetActive(false); // Hide UI
         HitDisable();
         CritHitDisable();
@@ -80,18 +83,41 @@ public class SingleShotGun : Gun
     {
         if (PV.IsMine)
         {
-            CheckAiming();
-            if (reloading)
+            if (isInspecting)
             {
-                currentDelay -= Time.deltaTime;
-                //OnReloading?.Invoke(currentDelay / ((GunInfo)itemInfo).reloadTime);
-                reloadBar.fillAmount = currentDelay / ((GunInfo)itemInfo).reloadTime;
+                if (Input.GetMouseButtonDown(0))
+                {
+                    Ray ray = cam.ScreenPointToRay(Input.mousePosition);
+                    RaycastHit hit;
+                    if (Physics.Raycast(ray, out hit, Mathf.Infinity, orbLayerMask))
+                    {
+                        if (hit.collider.TryGetComponent(out AttachmentOrb attachmentOrb)) attachmentOrb.OnOrbClicked();
+                    }
+                }
+            }
+            else
+            {
+                CheckAiming();
+                if (reloading)
+                {
+                    currentDelay -= Time.deltaTime;
+                    reloadBar.fillAmount = currentDelay / ((GunInfo)itemInfo).reloadTime;
+                }
             }
 
         }
 
     }
 
+    public void UpdateAimPoint(Transform newAimPoint)
+    {
+        aimpoint = newAimPoint;
+    }
+
+    public void UpdateFirePoint(Transform newFirePoint)
+    {
+        firePoint = newFirePoint;
+    }
 
 
     void CheckAiming()
@@ -100,45 +126,30 @@ public class SingleShotGun : Gun
         currentRotation = Vector3.Slerp(currentRotation, targetRotation, ((GunInfo)itemInfo).snappiness * Time.fixedDeltaTime);
 
         cam.transform.localRotation = Quaternion.Lerp(cam.transform.localRotation, Quaternion.Euler(currentRotation), ((GunInfo)itemInfo).snappiness * Time.deltaTime);
-        activeWeapon.localRotation = Quaternion.Lerp(cam.transform.localRotation, Quaternion.Euler(currentRotation), ((GunInfo)itemInfo).snappiness * Time.deltaTime);
+        activeWeapon.localRotation = Quaternion.Lerp(activeWeapon.transform.localRotation, Quaternion.Euler(currentRotation), ((GunInfo)itemInfo).snappiness * Time.deltaTime);
 
         if (Input.GetMouseButton(1))
         {
             aiming = true;
             crosshair.gameObject.SetActive(false);
-            //adsPosition.rotation = cam.transform.rotation;
-            //adsPosition.transform.localRotation = Quaternion.Lerp(cam.transform.localRotation, Quaternion.Euler(currentRotation), ((GunInfo)itemInfo).snappiness * Time.deltaTime);
-
-            weaponPosition = Vector3.Lerp(weaponPosition, adsPosition.localPosition, aimSpeed * Time.deltaTime);
-            activeWeapon.localPosition = weaponPosition;
-
-            //aimpoint.transform.localRotation = Quaternion.Euler(currentRotation);
-            SetFieldOfView(Mathf.Lerp(cam.fieldOfView, zoomRatio * _defaultFOV, aimSpeed * Time.deltaTime));
         }
         else
         {
             aiming = false;
             crosshair.gameObject.SetActive(true);
 
-            weaponPosition = Vector3.Lerp(weaponPosition, defaultPosition.localPosition, aimSpeed * Time.deltaTime);
-            activeWeapon.localPosition = weaponPosition;
             activeWeapon.localRotation = Quaternion.Euler(currentRotation);
-
-            SetFieldOfView(Mathf.Lerp(cam.fieldOfView, _defaultFOV, aimSpeed * Time.deltaTime));
         }
     }
 
     public void RecoilFire()
     {
-        // Calculate spread for non-aiming shots
         float xSpread = Random.Range(-spreadFactor, spreadFactor);
         float ySpread = Random.Range(-spreadFactor, spreadFactor);
 
-        // Calculate spread for aiming shots
         float aimingXSpread = Random.Range(-aimingSpreadFactor, aimingSpreadFactor);
         float aimingYSpread = Random.Range(-aimingSpreadFactor, aimingSpreadFactor);
 
-        // Apply recoil with spread
         Vector3 recoil = aiming
             ? new Vector3(((GunInfo)itemInfo).recoilX, Random.Range(-((GunInfo)itemInfo).aimRecoilY, ((GunInfo)itemInfo).aimRecoilY), Random.Range(-((GunInfo)itemInfo).aimRecoilZ, ((GunInfo)itemInfo).aimRecoilZ))
             : new Vector3(((GunInfo)itemInfo).recoilX + (aiming ? aimingXSpread : xSpread), Random.Range(-((GunInfo)itemInfo).recoilY + (aiming ? aimingYSpread : ySpread), ((GunInfo)itemInfo).recoilY + (aiming ? aimingYSpread : ySpread)), Random.Range(-((GunInfo)itemInfo).recoilZ + (aiming ? aimingXSpread : xSpread), ((GunInfo)itemInfo).recoilZ + (aiming ? aimingXSpread : xSpread)));
@@ -179,6 +190,11 @@ public class SingleShotGun : Gun
         return reloading;
     }
 
+    public override bool GetInspectState()
+    {
+        return isInspecting;
+    }
+
     public override bool GetAimState()
     {
         return aiming;
@@ -201,24 +217,24 @@ public class SingleShotGun : Gun
         if (Physics.Raycast(ray, out RaycastHit hit)) // Range?
         {
             if (hit.collider.gameObject.layer == 8) hitItem = true;
-            if (!hitItem)
+            else if (hit.collider.gameObject.layer == 19) hit.collider.GetComponent<IDamageable>().TakeDamage(damage);
+            else if (hit.collider.gameObject.layer == 7 || (hit.collider.gameObject.tag == "Enemy")) hitEnemy = true;
+            else if (hit.collider.gameObject.layer == 7 && (hit.collider.gameObject.tag == "EnemyCrit")) hitCrit = true;
+            else if (hit.collider.gameObject.tag == "Player") hitPlayer = true;
+            else if (hit.collider.gameObject.layer == 12)
             {
-                if (hit.collider.gameObject.layer == 7 || (hit.collider.gameObject.tag == "Enemy")) hitEnemy = true;
-                if (hit.collider.gameObject.layer == 7 && (hit.collider.gameObject.tag == "EnemyCrit")) hitCrit = true;
-                if (hit.collider.gameObject.tag == "Player") hitPlayer = true;
-                if (hit.collider.gameObject.layer == 12)
-                {
-                    hit.collider.gameObject.GetComponent<Glass>().PV.RPC("RPC_ShatterGlass", RpcTarget.All, hit.point);
-                    player.PlayShatter();
-                }
-                if (hitEnemy || hitCrit)
-                {
-                    if (hit.collider.gameObject.GetComponentInParent<IDamageable>()?.GetHealth() <= 0) hitDead = true;
-
-                    if (hitCrit) hit.collider.gameObject.GetComponentInParent<IDamageable>()?.TakeDamage(damage * 1.5f);
-                    else hit.collider.gameObject.GetComponentInParent<IDamageable>()?.TakeDamage(damage);
-                }
+                hit.collider.gameObject.GetComponent<Glass>().Shatter(hit.point);
+                player.PlayShatter();
             }
+
+            if (hitEnemy || hitCrit)
+            {
+                if (hit.collider.gameObject.GetComponentInParent<Enemy>()?.GetHealth() <= 0) hitDead = true;
+
+                if (hitCrit) hit.collider.gameObject.GetComponentInParent<IDamageable>()?.TakeDamage(damage * 1.5f);
+                else hit.collider.gameObject.GetComponentInParent<IDamageable>()?.TakeDamage(damage);
+            }
+            
         }
         else hit.point = ray.GetPoint(50);
 
@@ -348,5 +364,25 @@ public class SingleShotGun : Gun
     public void PlayClip(AudioClip clip)
     {
         audioSource.PlayOneShot(clip, 0.9f);
+    }
+
+    public override void Inspect()
+    {
+        orbs.gameObject.SetActive(true);
+
+        UnityEngine.Cursor.visible = true;
+        UnityEngine.Cursor.lockState = CursorLockMode.Confined;
+
+        isInspecting = true;
+    }
+
+    public override void StopInspect()
+    {
+        orbs.gameObject.SetActive(false);
+
+        UnityEngine.Cursor.visible = false;
+        UnityEngine.Cursor.lockState = CursorLockMode.Locked;
+
+        isInspecting = false;
     }
 }

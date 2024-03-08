@@ -19,7 +19,7 @@ public class InteractManager : MonoBehaviour
 
     GameObject lookingat;
 
-    public float range = 2f;
+    public float range = 2.5f;
     float interactDelay;
     float reviveKeyTime = 0f;
 
@@ -36,21 +36,31 @@ public class InteractManager : MonoBehaviour
                 weaponInteractable.HandleUI(player);
                 if (Input.GetKeyDown(KeyCode.E)) weaponInteractable.AddToInventory(player);
             }
-            if (interactableHit.transform.TryGetComponent(out DoorInteractable doorInteractable))
+            else if (interactableHit.transform.TryGetComponent(out DoorInteractable doorInteractable))
             {
                 doorInteractable.HandleUI(player);
-                if (Input.GetKeyDown(KeyCode.E)) doorInteractable.PV.RPC("RPC_ToggleDoor", RpcTarget.All);
+                if (Input.GetKeyDown(KeyCode.E)) doorInteractable.RequestToggle();
             }
-            if (interactableHit.transform.TryGetComponent(out HealthItem healthItem))
+            else if (interactableHit.transform.TryGetComponent(out Ladder ladder))
+            {
+                ladder.HandleUI(player);
+                if (Input.GetKeyDown(KeyCode.E)) player.Climb(ladder.transform);
+            }
+            else if (interactableHit.transform.TryGetComponent(out HealthItem healthItem))
             {
                 healthItem.HandleUI(player);
                 if (Input.GetKeyDown(KeyCode.E)) healthItem.HealPlayer(player);
+            }
+            else if (interactableHit.transform.TryGetComponent(out ArmourInteractable armourInteractable))
+            {
+                armourInteractable.HandleUI(player);
+                if (Input.GetKeyDown(KeyCode.E)) armourInteractable.EquipArmour(player);
             }
             else if (interactableHit.transform.TryGetComponent(out PlayerController playerController))
             {
                 if (playerController.isDowned)
                 {
-                    player.ReviveUI();
+                    player.ReviveUI(playerController);
                     if (Input.GetKey(KeyCode.E))
                     {
                         interactObject.gameObject.SetActive(true);
@@ -68,12 +78,6 @@ public class InteractManager : MonoBehaviour
         else InteractableWindow.gameObject.SetActive(false);
     }
     
-
-    public void RevivePlayer(PlayerController player)
-    {
-        player.ReviveUI();
-    }
-
     private void Update()
     {
         if (PV.IsMine)

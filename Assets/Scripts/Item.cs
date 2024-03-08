@@ -13,11 +13,17 @@ public abstract class Item : MonoBehaviour
 
     public abstract void Reload();
 
+    public abstract void Inspect();
+
+    public abstract void StopInspect();
+
     public abstract int GetAmmo();
 
     public abstract int GetMaxAmmo();
 
     public abstract bool GetReloadState();
+
+    public abstract bool GetInspectState();
 
     public abstract bool GetAimState();
 

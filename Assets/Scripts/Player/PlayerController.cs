@@ -8,10 +8,10 @@ using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
 {
-    [SerializeField] UnityEngine.UI.Image healthbarImage;
-    [SerializeField] TMP_Text healthbarText, ammo, waveText, lowReloadText, ItemName, InteractableName, PointsText, PoorText;
+    [SerializeField] UnityEngine.UI.Image healthbarImage, armourBarImage;
+    [SerializeField] TMP_Text healthbarText, armourbarText, ammo, waveText, lowReloadText, ItemName, InteractableName, PointsText, PoorText;
     [SerializeField] Image ItemIcon;
-    [SerializeField] GameObject ui, InteractableWindow, cameraHolder, itemHolder, AliveScreen, HitScreen;
+    [SerializeField] GameObject PlayerObj, ui, InteractableWindow, cameraHolder, itemHolder, AliveScreen, HitScreen;
     [SerializeField] public Canvas PauseMenu, SettingsMenu, EndGameScreen, Scoreboard, DownedScreen;
     [SerializeField] float mouseSensitivity, sprintSpeed, walkSpeed, jumpForce, smoothTime;
 
@@ -32,14 +32,17 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
     int currentAmmo;
     int maxAmmo;
     public int currentPoints;
+    float climbSpeed;
 
     float verticalLookRotation;
 
-    bool grounded;
-    bool reloadState;
-    bool aimState;
+    public bool grounded;
+    public bool isReloading;
+    public bool isAiming;
     public bool isDowned = false;
     public bool isDead = false;
+    public bool isClimbing = false;
+    public bool isInspecting;
 
     string currentAmmoString;
     string maxAmmoString;
@@ -58,6 +61,9 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
 
     public float maxHealth = 100f;
     public float currentHealth;
+
+    public float maxArmour = 100f;
+    public float currentArmour;
 
     PlayerManager playerManager;
 
@@ -81,8 +87,9 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
     void Start()
     {
         currentHealth = maxHealth;
+        climbSpeed = 5f;
         if (PV.IsMine)
-        {
+        {   
             EquipItem(0);
         }
         else
@@ -115,16 +122,18 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
         if (isDowned)
         {
             Look();
-            DisableUI();
         }
-        else ActivateUI();
 
         if (Controllable)
         {
 
             Look();
-            Move();
-            Jump();
+            HandleClimbing();
+            if (!isClimbing)
+            {
+                Move();
+                Jump();
+            }
 
             currentPoints = playerManager.Points();
 
@@ -147,6 +156,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
             //UI Updates
             SetItemUI();
             UpdateHealthBar();
+            UpdateArmourBar();
             currentAmmo = items[itemIndex].GetAmmo();
             currentAmmoString = currentAmmo.ToString();
             maxAmmo = items[itemIndex].GetMaxAmmo();
@@ -155,19 +165,20 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
             ammo.text = currentAmmoString + '/' + maxAmmoString;
             CheckReloadText();
 
-            reloadState = items[itemIndex].GetReloadState();
-            aimState = items[itemIndex].GetAimState();
+            isReloading = items[itemIndex].GetReloadState();
+            isAiming = items[itemIndex].GetAimState();
+            isInspecting = items[itemIndex].GetInspectState();
 
             for (int i = 0; i < items.Length; i++)
             {
-                if (Input.GetKeyDown((i + 1).ToString()) && !reloadState && items[i].isAbleToBeUsed)
+                if (Input.GetKeyDown((i + 1).ToString()) && !isReloading && items[i].isAbleToBeUsed)
                 {
                     EquipItem(i);
                     break;
                 }
             }
 
-            if (!reloadState && !aimState)
+            if (!isReloading && !isAiming && !isClimbing && !isInspecting)
             {
                 if (Input.GetAxisRaw("Mouse ScrollWheel") > 0f)
                 {
@@ -198,25 +209,40 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
                 }
             }
 
-
-            if (items[itemIndex].GetButtonHold())
+            if (!isClimbing)
             {
-                if (Input.GetMouseButton(0))
+                if (!isInspecting)
                 {
-                    items[itemIndex].Use();
-                }
-            }
-            else
-            {
-                if (Input.GetMouseButtonDown(0))
-                {
-                    items[itemIndex].Use();
-                }
-            }
+                    if (items[itemIndex].GetButtonHold())
+                    {
+                        if (Input.GetMouseButton(0))
+                        {
+                            items[itemIndex].Use();
+                        }
+                    }
+                    else
+                    {
+                        if (Input.GetMouseButtonDown(0))
+                        {
+                            items[itemIndex].Use();
+                        }
+                    }
 
-            if (Input.GetKeyDown(KeyCode.R))
-            {
-                items[itemIndex].Reload();
+                    if (Input.GetKeyDown(KeyCode.R) && !isReloading)
+                    {
+                        items[itemIndex].Reload();
+                    }
+                }
+
+                if (Input.GetKeyDown(KeyCode.I) && !isReloading && !isAiming && !isInspecting)
+                {
+                    items[itemIndex].Inspect();
+                }
+
+                if (Input.GetKeyDown(KeyCode.I) && isInspecting)
+                {
+                    items[itemIndex].StopInspect();
+                }
             }
 
             if (Input.GetKey(KeyCode.Tab)) Scoreboard.gameObject.SetActive(true);
@@ -355,18 +381,20 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
 
     void Look()
     {
-        transform.Rotate(Vector3.up * Input.GetAxisRaw("Mouse X") * mouseSensitivity);
+        if (!isInspecting)
+        {
+            transform.Rotate(Vector3.up * Input.GetAxisRaw("Mouse X") * mouseSensitivity);
 
-        verticalLookRotation += Input.GetAxisRaw("Mouse Y") * mouseSensitivity;
-        verticalLookRotation = Mathf.Clamp(verticalLookRotation, -90f, 90f);
+            verticalLookRotation += Input.GetAxisRaw("Mouse Y") * mouseSensitivity;
+            verticalLookRotation = Mathf.Clamp(verticalLookRotation, -90f, 90f);
 
-        cameraHolder.transform.localEulerAngles = Vector3.left * verticalLookRotation;
+            cameraHolder.transform.localEulerAngles = Vector3.left * verticalLookRotation;
+        }
     }
 
     void Move()
     {
         Vector3 moveDir = new Vector3(Input.GetAxisRaw("Horizontal"), 0, Input.GetAxisRaw("Vertical")).normalized;
-
         moveAmount = Vector3.SmoothDamp(moveAmount, moveDir * (Input.GetKey(KeyCode.LeftShift) ? sprintSpeed : walkSpeed), ref smoothMoveVelocity, smoothTime);
     }
 
@@ -374,6 +402,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
     {
         if (Input.GetKeyDown(KeyCode.Space) && grounded)
         {
+            if(isClimbing) isClimbing = false;
             PlayClip(jumpSound);
             rb.AddForce(transform.up * jumpForce);
         }
@@ -381,27 +410,29 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
 
     void EquipItem(int _index)
     {
-        if (_index == previousItemIndex)
-            return;
+        if (!isClimbing && !isDead && !isDowned) {
+            if (_index == previousItemIndex)
+                return;
 
-        PlayClip(holsterSound);
+            PlayClip(holsterSound);
 
-        itemIndex = _index;
+            itemIndex = _index;
 
-        items[itemIndex].itemGameObject.SetActive(true);
+            items[itemIndex].itemGameObject.SetActive(true);
 
-        if (previousItemIndex != -1)
-        {
-            items[previousItemIndex].itemGameObject.SetActive(false);
-        }
+            if (previousItemIndex != -1)
+            {
+                items[previousItemIndex].itemGameObject.SetActive(false);
+            }
 
-        previousItemIndex = itemIndex;
+            previousItemIndex = itemIndex;
 
-        if (PV.IsMine)
-        {
-            Hashtable hash = new Hashtable();
-            hash.Add("itemIndex", itemIndex);
-            PhotonNetwork.LocalPlayer.SetCustomProperties(hash);
+            if (PV.IsMine)
+            {
+                Hashtable hash = new Hashtable();
+                hash.Add("itemIndex", itemIndex);
+                PhotonNetwork.LocalPlayer.SetCustomProperties(hash);
+            }
         }
     }
 
@@ -423,7 +454,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
         if (!PV.IsMine)
             return;
 
-        if(Controllable) rb.MovePosition(rb.position + transform.TransformDirection(moveAmount) * Time.fixedDeltaTime);
+        if(Controllable && !isClimbing) rb.MovePosition(rb.position + transform.TransformDirection(moveAmount) * Time.fixedDeltaTime);
     }
 
     public void TakeDamage(float damage)
@@ -438,7 +469,12 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
         {
             HitEnable();
             Invoke(nameof(HitDisable), 0.5f);
-            currentHealth -= damage;
+            if (currentArmour > 0)
+            {
+                if ((currentArmour - damage) < 0) currentArmour = 0;
+                else currentArmour-= damage;
+            }
+            else currentHealth -= damage;
         }
         if (currentHealth <= 0 && !isDowned && !isDead) GoDowned();
     }
@@ -447,6 +483,12 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
     {
         healthbarImage.fillAmount = currentHealth / maxHealth;
         healthbarText.text = currentHealth.ToString();
+    }
+
+    void UpdateArmourBar()
+    {
+        armourBarImage.fillAmount = currentArmour / maxArmour;
+        armourbarText.text = currentArmour.ToString();
     }
 
     void Die()
@@ -467,13 +509,12 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
 
     public void GoDowned()
     {
+        playerManager.Downed();
         GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
         if (!AreOtherPlayersDowned(players))
         {
 
             PV.RPC(nameof(GoDownedRPC), RpcTarget.AllBuffered);
-
-            playerManager.Downed();
             isDowned = true;
             state = PlayerState.DOWNED;
             Controllable = false;
@@ -492,10 +533,10 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
         itemHolder.gameObject.SetActive(false);
     }
 
-    public void ReviveUI()
+    public void ReviveUI(PlayerController targetPlayer)
     {
         InteractableWindow.gameObject.SetActive(true);
-        InteractableName.text = username;
+        InteractableName.text = targetPlayer.username;
         PointsText.text = "Hold E to revive";
 
     }
@@ -514,11 +555,11 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
     public void ReviveRPC(Vector3 revivedScale)
     {
         isDowned = false;
+        ActivateUI();
         state = PlayerState.ALIVE;
         Controllable = true;
         currentHealth = 100;
         itemHolder.gameObject.SetActive(true);
-        // Set the player's scale received from RPC
         transform.localScale = revivedScale;
     }
 
@@ -590,5 +631,39 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
     public float GetHealth()
     {
         return currentHealth;
+    }
+
+    public void Climb(Transform ladderTransform)
+    {
+        itemHolder.gameObject.SetActive(false);
+        rb.isKinematic = true;
+
+        Vector3 inFrontOfLadder = ladderTransform.position + ladderTransform.forward * 1.5f;
+        transform.position = new Vector3(inFrontOfLadder.x + 0.4f, transform.position.y, inFrontOfLadder.z - 1.4f);
+
+        isClimbing = true;
+
+    }
+
+    void HandleClimbing()
+    {
+        if (isClimbing)
+        {
+            float verticalInput = Input.GetAxis("Vertical");
+            transform.Translate(Vector3.up * climbSpeed * verticalInput * Time.deltaTime);
+
+        }
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.gameObject.CompareTag("TopLadder") && isClimbing) StopClimbing();
+    }
+
+    void StopClimbing()
+    {
+        isClimbing = false;
+        rb.isKinematic = false;
+        itemHolder.SetActive(true);
     }
 }

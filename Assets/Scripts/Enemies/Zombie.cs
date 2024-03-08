@@ -8,39 +8,33 @@ using UnityEngine.AI;
 
 public class Zombie : Enemy
 {
-    public float speed;
+    [SerializeField] int PointReward;
+
 
     public float minAngle = 0f;
     public float maxAngle = 0f;
-
     public NavMeshAgent agent;
-
     public PhotonView PV;
-
     [HideInInspector] public Transform player;
-
     public LayerMask whatIsGround, whatIsPlayer;
 
-
-    //Patrolling
+    // Patrolling
     public Vector3 walkPoint;
     bool walkPointSet;
     public float walkPointRange;
 
-    //Attacking
+    // Attacking
     public float timeBetweenAttacks;
     bool alreadyAttacked;
-    bool prepareToAttack = false;
     public GameObject projectile;
 
-    //States
+    // States
     public float sightRange, attackRange;
-    public bool playerInSightRange, playerInAttackRange;
-
     public int damage;
+    bool isPatrolling = false;
 
-    bool dead = false;
-
+    private float checkRate = 0.5f;
+    private float nextCheck;
 
     void Awake()
     {
@@ -50,28 +44,37 @@ public class Zombie : Enemy
 
     public void Update()
     {
+        if (Time.time > nextCheck)
+        {
+            nextCheck = Time.time + checkRate;
+            PerformAI();
+        }
+    }
+
+    void PerformAI()
+    {
         if (currentHealth <= 0 && !isDead) Die();
         if (isDead) return;
 
-        GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
+        isPatrolling = false;
 
-        if (players.Length == 0) Patrolling();
+        // Optimize player finding
+        if (player == null || !IsPlayerValid(player)) FindAndSetNearestPlayer();
 
-        player = FindNearestPlayer(players);
-
-        if (player == null || !IsPlayerValid(player))
+        if (player == null) Patrolling();
+        else
         {
-            Patrolling();
-            return;
+            if (IsPlayerNextToEnemy()) AttackPlayer();
+            else ChasePlayer();
         }
-
-        playerInSightRange = Physics.CheckSphere(transform.position, sightRange, whatIsPlayer);
-        playerInAttackRange = Physics.CheckSphere(transform.position, attackRange, whatIsPlayer);
-
-        if (!playerInSightRange && !playerInAttackRange) Patrolling();
-        if (playerInSightRange && !playerInAttackRange) ChasePlayer();
-        if (playerInAttackRange && playerInSightRange && IsPlayerNextToEnemy()) AttackPlayer();
     }
+    void FindAndSetNearestPlayer()
+    {
+        // This should be replaced with a more efficient player tracking system
+        GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
+        player = FindNearestPlayer(players);
+    }
+
     private bool IsPlayerNextToEnemy()
     {
         if (player != null)
@@ -121,14 +124,14 @@ public class Zombie : Enemy
 
         Vector3 distanceToWalkPoint = transform.position - walkPoint;
 
-        //Walkpoint reached
         if (distanceToWalkPoint.magnitude < 1f)
             walkPointSet = false;
     }
 
     void Patrolling()
     {
-        PV.RPC("PatrollingRPC", RpcTarget.All);
+        isPatrolling = true;
+        PV.RPC("PatrollingRPC", RpcTarget.AllBuffered);
     }
 
     void SearchWalkPoint()
@@ -146,11 +149,7 @@ public class Zombie : Enemy
     [PunRPC]
     void ChasePlayerRPC()
     {
-        if (PV != null && PV.IsMine && player != null) // Check if the PhotonView exists, is owned by the local player, and player is not null
-        {
-            agent.SetDestination(player.position);
-            // Add your animation control here if needed
-        }
+        if (PV != null && PV.IsMine && player != null) agent.SetDestination(player.position);
     }
 
     private void ChasePlayer()
@@ -161,20 +160,15 @@ public class Zombie : Enemy
     void AttackPlayer()
     {
         agent.SetDestination(transform.position);
-        PV.RPC("AttackPlayerRPC", RpcTarget.All);
+        PV.RPC("AttackPlayerRPC", RpcTarget.AllBuffered);
 
     }
 
     [PunRPC]
     void AttackPlayerRPC()
     {
-        if (!PV.IsMine || player == null)
-            return;
+        if (!PV.IsMine || player == null) return;
 
-        // Make sure enemy doesn't move
-        //GetComponent<Animator>().Play("Z_Attack");
-
-        transform.LookAt(player);
         Vector3 eulerAngles = transform.rotation.eulerAngles;
         float clampedZ = Mathf.Clamp(eulerAngles.z, minAngle, maxAngle);
         float clampedY = Mathf.Clamp(eulerAngles.y, minAngle, maxAngle);
@@ -198,7 +192,7 @@ public class Zombie : Enemy
 
     public override void TakeDamage(float damage)
     {
-        PV.RPC("RPC_TakeDamage", RpcTarget.All, damage);
+        PV.RPC("RPC_TakeDamage", RpcTarget.AllBuffered, damage);
     }
 
     [PunRPC]
@@ -209,11 +203,11 @@ public class Zombie : Enemy
 
         currentHealth -= damage;
 
-        if (!dead && currentHealth <= 0)
+        if (!isDead && currentHealth <= 0)
         {
-            dead = true;
+            isDead = true;
             Die();
-            PlayerManager.Find(info.Sender).GetKill(25);
+            PlayerManager.Find(info.Sender).GetKill(PointReward);
         }
     }
 
@@ -229,7 +223,7 @@ public class Zombie : Enemy
 
     public override void Die()
     {
-        PV.RPC("DieRPC", RpcTarget.All);
+        PV.RPC("DieRPC", RpcTarget.AllBuffered);
     }
 
     public static PlayerManager Find(Player player)

@@ -4,9 +4,13 @@
 TagManager:
   serializedVersion: 2
   tags:
-  - Enemy
-  - Item
   - EnemyCrit
+  - Ladder
+  - TopLadder
+  - Weapon
+  - Orb
+  - Item
+  - Enemy
   layers:
   - Default
   - TransparentFX
@@ -22,13 +26,13 @@ TagManager:
   - Prop
   - Glass
   - Health
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
+  - Ladder
+  - LadderTop
+  - Weapon
+  - Orb
+  - Armour
+  - Barrel
+  - IgnoreInCamera
   - 
   - 
   - 

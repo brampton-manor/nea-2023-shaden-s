@@ -1,24 +1,32 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
-using TMPro;
 
-public class DoorInteractable : MonoBehaviourPun
+public class DoorInteractable : MonoBehaviour
 {
     [SerializeField] GameObject Door;
     [SerializeField] AudioClip openSound;
+    [SerializeField] float CustomRotation;
+    public string doorID; 
 
     AudioSource audioSource;
-
     bool open = false;
-
-    public PhotonView PV; 
 
     void Awake()
     {
+        doorID = GenerateUniqueID(5);
         audioSource = GetComponent<AudioSource>();
-        PV = GetComponent<PhotonView>(); 
+    }
+
+    string GenerateUniqueID(int length)
+    {
+        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        var random = new System.Random();
+        var uniqueID = new char[length];
+        for (int i = 0; i < length; i++)
+        {
+            uniqueID[i] = chars[random.Next(chars.Length)];
+        }
+        return new string(uniqueID);
     }
 
     public void HandleUI(PlayerController player)
@@ -27,28 +35,15 @@ public class DoorInteractable : MonoBehaviourPun
         else player.SetInteractUI("Door", "Press E to close");
     }
 
-    public void ToggleDoor()
+    public void RequestToggle()
     {
-        if (PV.IsMine) 
-        {
-            photonView.RPC("RPC_ToggleDoor", RpcTarget.All);
-        }
+        NetworkManager.Instance.ToggleDoorRPC(doorID, !open);
     }
 
-    [PunRPC]
-    void RPC_ToggleDoor()
+    public void ToggleDoor(bool newState)
     {
-        if (!open)
-        {
-            Door.transform.localRotation = Quaternion.Euler(0f, -125f, 0f);
-            audioSource.PlayOneShot(openSound, 1f);
-            open = true;
-        }
-        else
-        {
-            Door.transform.localRotation = Quaternion.Euler(0f, 0f, 0f);
-            audioSource.PlayOneShot(openSound, 1f);
-            open = false;
-        }
+        open = newState;
+        Door.transform.localRotation = open ? Quaternion.Euler(0f, CustomRotation, 0f) : Quaternion.Euler(0f, 0f, 0f);
+        audioSource.PlayOneShot(openSound, 1f);
     }
 }

@@ -129,7 +129,7 @@ NavMeshAgent:
   m_AngularSpeed: 120
   m_StoppingDistance: 0
   m_AutoTraverseOffMeshLink: 1
-  m_AutoBraking: 0
+  m_AutoBraking: 1
   m_AutoRepath: 1
   m_Height: 2
   m_BaseOffset: 1
@@ -172,7 +172,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_SynchronizePosition: 1
   m_SynchronizeRotation: 1
-  m_SynchronizeScale: 0
+  m_SynchronizeScale: 1
   m_UseLocal: 1
 --- !u!114 &8619096863958890731
 MonoBehaviour:
@@ -189,7 +189,7 @@ MonoBehaviour:
   maxHealth: 100
   currentHealth: 100
   isDead: 0
-  speed: 1
+  PointReward: 25
   minAngle: 0
   maxAngle: 0
   agent: {fileID: 6763496842879831822}
@@ -207,8 +207,6 @@ MonoBehaviour:
   projectile: {fileID: 0}
   sightRange: 99999
   attackRange: 2
-  playerInSightRange: 0
-  playerInAttackRange: 0
   damage: 20
 --- !u!1 &4123527287103530605
 GameObject:

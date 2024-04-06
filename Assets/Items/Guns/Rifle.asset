@@ -33,5 +33,5 @@ MonoBehaviour:
   snappiness: 12
   returnSpeed: 3
   timeBetweenShots: 0.15
-  reloadTime: 2
+  reloadTime: 1.5
   shootSound: {fileID: 8300000, guid: 876fbc1819bf43d42b23009fc2a37876, type: 3}

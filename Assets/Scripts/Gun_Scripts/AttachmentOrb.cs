@@ -1,12 +1,16 @@
 using System.Collections.Generic;
+using Photon.Pun;
 using UnityEngine;
 
-public class AttachmentOrb : MonoBehaviour
+public class AttachmentOrb : MonoBehaviourPunCallbacks
 {
-    [SerializeField] private string orbName;
+    [SerializeField] SingleShotGun gun;
+    [SerializeField] string attachmentType; // Unique identifier for the attachment type, e.g., 'S' for sights
     [SerializeField] private GameObject attachmentPrefabs;
 
-    private int currentAttachmentIndex = -1;
+    public int orbIndex;
+
+    private int currentAttachmentIndex = 0;
 
     private void Awake()
     {
@@ -14,25 +18,13 @@ public class AttachmentOrb : MonoBehaviour
         {
             gameObject.SetActive(false);
         }
-
         EquipFirstAttachment();
-    }
-
-    public void ToggleAttachment()
-    {
-        if (currentAttachmentIndex != -1)
-        {
-            attachmentPrefabs.transform.GetChild(currentAttachmentIndex).gameObject.SetActive(false);
-        }
-
-        currentAttachmentIndex = (currentAttachmentIndex + 1) % attachmentPrefabs.transform.childCount;
-
-        attachmentPrefabs.transform.GetChild(currentAttachmentIndex).gameObject.SetActive(true);
     }
 
     public void OnOrbClicked()
     {
-        ToggleAttachment();
+        currentAttachmentIndex = (currentAttachmentIndex + 1) % attachmentPrefabs.transform.childCount;
+        gun.UpdateAttachments(attachmentType, currentAttachmentIndex);
     }
 
     private void EquipFirstAttachment()

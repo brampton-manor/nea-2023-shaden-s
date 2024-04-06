@@ -12,8 +12,10 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
     [SerializeField] TMP_Text healthbarText, armourbarText, ammo, waveText, lowReloadText, ItemName, InteractableName, PointsText, PoorText;
     [SerializeField] Image ItemIcon;
     [SerializeField] GameObject PlayerObj, ui, InteractableWindow, cameraHolder, itemHolder, AliveScreen, HitScreen;
+    [SerializeField] Transform headTransform;
     [SerializeField] public Canvas PauseMenu, SettingsMenu, EndGameScreen, Scoreboard, DownedScreen;
     [SerializeField] float mouseSensitivity, sprintSpeed, walkSpeed, jumpForce, smoothTime;
+    [SerializeField] PointsBoard pointsBoard;
 
     [SerializeField] public Item[] items;
 
@@ -128,6 +130,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
         {
 
             Look();
+            PV.RPC(nameof(SyncLookRotation), RpcTarget.Others, verticalLookRotation);
             HandleClimbing();
             if (!isClimbing)
             {
@@ -260,6 +263,12 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
 
     }
 
+    [PunRPC]
+    void SyncLookRotation(float rotation)
+    {
+        headTransform.localEulerAngles = new Vector3(-rotation, headTransform.localEulerAngles.y, headTransform.localEulerAngles.z);  
+    }
+
     void TeleportToYLevel(float targetY)
     {
         Vector3 newPosition = transform.position;
@@ -379,6 +388,11 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
         ItemName.text = items[itemIndex].itemInfo.ItemName;
     }
 
+    public void AddPointsUI(string text)
+    {
+        pointsBoard.AddItem(text);
+    }
+
     void Look()
     {
         if (!isInspecting)
@@ -493,18 +507,22 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
 
     void Die()
     {
-        state = PlayerState.DEAD;
-        Controllable = false;
-        isDowned = false;
-        isDead = true;
+        if (state != PlayerState.DEAD)
+        {
+            state = PlayerState.DEAD;
+            Controllable = false;
+            isDowned = false;
+            isDead = true;
 
-        EndGameScreen.gameObject.SetActive(true);
-        DownedScreen.gameObject.SetActive(false);
-        AliveScreen.gameObject.SetActive(false);
-        itemHolder.gameObject.SetActive(false);
+            EndGameScreen.gameObject.SetActive(true);
+            EndGameScreen.GetComponent<EndGame>().TriggerEndGameUpdate();
+            DownedScreen.gameObject.SetActive(false);
+            AliveScreen.gameObject.SetActive(false);
+            itemHolder.gameObject.SetActive(false);
 
-        UnityEngine.Cursor.visible = true;
-        UnityEngine.Cursor.lockState = CursorLockMode.Confined;
+            UnityEngine.Cursor.visible = true;
+            UnityEngine.Cursor.lockState = CursorLockMode.Confined;
+        }
     }
 
     public void GoDowned()
@@ -522,6 +540,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
             transform.localScale = new Vector3(1f, 0.5f, 1f);
             DisableUI();
         }
+        else Die();
     }
 
     [PunRPC]
@@ -543,7 +562,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
 
     public void Revive()
     {
-        transform.localScale = new Vector3(1f, 1f, 1f);
+        transform.localScale = new Vector3(1.1f, 1.2f, 1.1f);
         PV.RPC(nameof(ReviveRPC), RpcTarget.AllBuffered, transform.localScale);
         isDowned = false;
         state = PlayerState.ALIVE;

@@ -13,20 +13,8 @@ public class DoorInteractable : MonoBehaviour
 
     void Awake()
     {
-        doorID = GenerateUniqueID(5);
+        doorID = "Door_" + transform.position.x + "_" + transform.position.z;
         audioSource = GetComponent<AudioSource>();
-    }
-
-    string GenerateUniqueID(int length)
-    {
-        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        var random = new System.Random();
-        var uniqueID = new char[length];
-        for (int i = 0; i < length; i++)
-        {
-            uniqueID[i] = chars[random.Next(chars.Length)];
-        }
-        return new string(uniqueID);
     }
 
     public void HandleUI(PlayerController player)

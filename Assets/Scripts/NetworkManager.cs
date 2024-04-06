@@ -10,23 +10,23 @@ public class NetworkManager : MonoBehaviourPunCallbacks
 
     PhotonView PV;
 
-    [SerializeField] Transform brokenGlass;
-
     void Awake()
     {
         Instance = this;
         PV = GetComponent<PhotonView>();
     }
 
-    public void ShatterGlass(Vector3 position)
+    public void ShatterGlass(Vector3 position, string GlassID)
     {
-        PV.RPC(nameof(RPC_ShatterGlass), RpcTarget.All, position);
+        PV.RPC(nameof(RPC_ShatterGlass), RpcTarget.All, position, GlassID);
     }
 
     [PunRPC]
-    void RPC_ShatterGlass(Vector3 position)
+    void RPC_ShatterGlass(Vector3 position, string GlassID)
     {
-        Instantiate(brokenGlass, position, Quaternion.identity);
+        var glasses = FindObjectsOfType<Glass>();
+        var glass = glasses.FirstOrDefault(g => g.glassID == GlassID);
+        glass.SyncShatter(position);
     }
 
     public void ToggleDoorRPC(string doorId, bool open)
@@ -37,22 +37,21 @@ public class NetworkManager : MonoBehaviourPunCallbacks
     [PunRPC]
     void RPC_ToggleDoor(string doorId, bool open)
     {
-        // Find door by ID and toggle it
         var doors = FindObjectsOfType<DoorInteractable>();
         var door = doors.FirstOrDefault(d => d.doorID == doorId);
-        if (door != null) door.ToggleDoor(open);
+        door.ToggleDoor(open);
     }
 
-    public void ExplodeBarrelRPC(string barrelID)
+    public void ExplodeBarrelRPC(Vector3 position, string BarrelID)
     {
-        PV.RPC(nameof(RPC_ExplodeBarrel), RpcTarget.All, barrelID);
+        PV.RPC(nameof(RPC_ExplodeBarrel), RpcTarget.All, position, BarrelID);
     }
 
     [PunRPC]
-    void RPC_ExplodeBarrel(string barrelID)
+    void RPC_ExplodeBarrel(Vector3 position, string BarrelID)
     {
         var barrels = FindObjectsOfType<ExplosiveBarrel>();
-        var barrel = barrels.FirstOrDefault(b => b.barrelID == barrelID);
-        if (barrel != null) barrel.Die();
+        var barrel = barrels.FirstOrDefault(b => b.barrelID == BarrelID);
+        barrel.SyncExplosion();
     }
 }

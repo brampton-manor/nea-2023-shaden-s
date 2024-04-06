@@ -1,31 +1,21 @@
 using UnityEngine;
 using Photon.Pun;
 using UnityEngine.ProBuilder.Shapes;
+using UnityEngine.UIElements;
 
 public class ExplosiveBarrel : Destructible, IDamageable
 {
+    [SerializeField] GameObject explosionEffect;
+    [SerializeField] GameObject destroyedBarrel;
+    [SerializeField] AudioClip explosionSound;
     [SerializeField] private float explosionRadius = 5f;
     [SerializeField] private float explosionForce = 1000f;
-    [SerializeField] private GameObject explosionEffect;
-    [SerializeField] private GameObject destroyedBarrel;
-    [SerializeField] private AudioClip explosionSound;
-
-    public string barrelID;
-
     private bool hasExploded = false;
 
+    public string barrelID;
     void Awake()
     {
-        barrelID = GenerateUniqueID(4);
-    }
-
-    string GenerateUniqueID(int length)
-    {
-        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        var random = new System.Random();
-        var uniqueID = new char[length];
-        for (int i = 0; i < length; i++) uniqueID[i] = chars[random.Next(chars.Length)];
-        return new string(uniqueID);
+        barrelID = "Barrel_" + transform.position.x + "_" + transform.position.z;
     }
 
     public override void TakeDamage(float damage)
@@ -38,15 +28,10 @@ public class ExplosiveBarrel : Destructible, IDamageable
 
     public override void Die()
     {
-        if (hasExploded) return; // Prevent recursion or multiple calls
+        if (hasExploded) return; 
         hasExploded = true;
 
-        // Play explosion sound
-        AudioSource.PlayClipAtPoint(explosionSound, transform.position);
-
-        // Show explosion effect
-        Instantiate(explosionEffect, transform.position, Quaternion.identity);
-        Instantiate(destroyedBarrel, transform.position, Quaternion.identity);
+        NetworkManager.Instance.ExplodeBarrelRPC(transform.position, barrelID);
 
         Collider[] colliders = Physics.OverlapSphere(transform.position, explosionRadius);
         foreach (Collider nearbyObject in colliders)
@@ -60,10 +45,17 @@ public class ExplosiveBarrel : Destructible, IDamageable
             IDamageable damageable = nearbyObject.GetComponent<IDamageable>();
             if (damageable != null)
             {
-                damageable.TakeDamage(150); // Consider adding distance-based damage reduction
+                damageable.TakeDamage(75); 
             }
         }
+    }
 
+    public void SyncExplosion()
+    {
+        AudioSource.PlayClipAtPoint(explosionSound, transform.position);
+        Instantiate(explosionEffect, transform.position, Quaternion.identity);
+        Instantiate(destroyedBarrel, transform.position, Quaternion.identity); 
         Destroy(gameObject);
     }
+
 }

@@ -4,12 +4,12 @@ using UnityEngine;
 
 public class WeaponScript : MonoBehaviour
 {
-    RecoilSystem1 recoil;
+    RecoilSystem recoil;
     [SerializeField] float shootDelay = 1f;
     float T_ShootDelay;
     void Start()
     {
-        recoil = GetComponent<RecoilSystem1>();
+        recoil = GetComponent<RecoilSystem>();
         T_ShootDelay = shootDelay;
     }
 

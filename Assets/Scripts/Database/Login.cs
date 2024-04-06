@@ -40,7 +40,10 @@ public class Login : MonoBehaviour
                     LoggedIn = true;
                     Profile.Instance.UpdateProfile();
                 }
-                else DebugText.text = www.downloadHandler.text;
+                else
+                {
+                    DebugText.text = www.downloadHandler.text;
+                }
             }
         }
     }

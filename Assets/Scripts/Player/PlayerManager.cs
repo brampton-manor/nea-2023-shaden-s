@@ -2,8 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using Photon.Pun;
 using Photon.Realtime;
-using Photon.Pun;
-using TMPro;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
 using System.Linq;
 using System.IO;
@@ -71,6 +69,8 @@ public class PlayerManager : MonoBehaviour
         kills++;
         points = points + pointsrecieved;
 
+        controller.GetComponent<PlayerController>().AddPointsUI("+ " + pointsrecieved);
+
         Hashtable hash = new Hashtable();
         hash.Add("kills", kills);
         hash.Add("points", points);
@@ -86,6 +86,8 @@ public class PlayerManager : MonoBehaviour
     void RPC_GetPoints(int pointsrecieved)
     {
         points = points + pointsrecieved;
+
+        controller.GetComponent<PlayerController>().AddPointsUI("+ " + pointsrecieved);
 
         Hashtable hash = new Hashtable();
         hash.Add("points", points);

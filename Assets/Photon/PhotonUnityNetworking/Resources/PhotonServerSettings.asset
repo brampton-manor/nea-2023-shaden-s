@@ -65,6 +65,11 @@ MonoBehaviour:
   - RPC_ShareSpawnPoints
   - UseSeedToGenerateMap
   - ReceiveMapSeed
+  - SyncLookRotation
+  - RPC_HandleOrbClicked
+  - RPC_HandleOrbTypeClicked
+  - RPC_UpdateAttachments
+  - UpdateLaserEndPosition
   DisableAutoOpenWizard: 1
   ShowSettings: 0
   DevRegionSetOnce: 1

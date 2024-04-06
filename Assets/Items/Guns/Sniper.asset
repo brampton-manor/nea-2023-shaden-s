@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 32f795f03e2617044b529f64e38ff34d, type: 3}
+  m_Name: Sniper
+  m_EditorClassIdentifier: 
+  ItemName: Sniper
+  ItemIcon: {fileID: 21300000, guid: 470c60bb00c04a840a3607711d5637a8, type: 3}
+  allowButtonHold: 0
+  projectile: {fileID: 0}
+  bulletTrail: {fileID: 3283993877217940934, guid: 273919da2662d614895d59c2ed413181, type: 3}
+  muzzleFlash: {fileID: 748781637555137343, guid: ab3efdcb3e4feb14d882aa1cac56309f, type: 3}
+  bulletImpact: {fileID: 2462405574108921655, guid: e6d36bb0ebdf6cc4dacdeee8b6e8a0ce, type: 3}
+  bulletShell: {fileID: 4542564807098512585, guid: cfcd37b8cf1cc7d43bf405cbad15eedf, type: 3}
+  bloodImpact: {fileID: 5958846514259283196, guid: 2888c8e7a1313bd48abf0f91dfd7b628, type: 3}
+  damage: 100
+  maxDistance: 1000
+  magSize: 6
+  recoilX: -15
+  recoilY: 6
+  recoilZ: 3
+  aimRecoilX: -2.5
+  aimRecoilY: 2
+  aimRecoilZ: 2
+  snappiness: 25
+  returnSpeed: 3
+  timeBetweenShots: 2.5
+  reloadTime: 5
+  shootSound: {fileID: 0}

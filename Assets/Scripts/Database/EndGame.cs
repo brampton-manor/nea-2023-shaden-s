@@ -1,9 +1,7 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using Photon.Pun;
-using UnityEngine.SceneManagement;
 using Photon.Realtime;
 using UnityEngine.Networking;
 
@@ -20,20 +18,29 @@ public class EndGame : MonoBehaviour
 
     string currentWave;
 
-    void Start()
+    private bool hasUpdatedEndGame = false;
+
+    public void TriggerEndGameUpdate()
     {
-        player = PhotonNetwork.LocalPlayer;
-        currentWave = EnemySpawner.Instance.GetWave();
-        if (player.CustomProperties.TryGetValue("kills", out object kills))
+        if (!hasUpdatedEndGame) // Ensure this runs only once
         {
-            kill = (int)kills;
+            hasUpdatedEndGame = true; // Prevent multiple executions
+            player = PhotonNetwork.LocalPlayer;
+            currentWave = EnemySpawner.Instance.GetWave();
+
+            if (player.CustomProperties.TryGetValue("kills", out object kills))
+            {
+                kill = (int)kills;
+            }
+            if (player.CustomProperties.TryGetValue("deaths", out object deaths))
+            {
+                downs = (int)deaths;
+            }
+
+            MatchStatsText.text = $"Match Stats\nWaves Survived: {currentWave}\nEnemies Killed: {kill}\nTimes Downed: {downs}";
+            Debug.Log("End Game Triggered");
+            StartCoroutine(EndGameUpdate());
         }
-        if (player.CustomProperties.TryGetValue("deaths", out object deaths))
-        {
-            downs = (int)deaths;
-        }
-        MatchStatsText.text = "Match Stats\nWaves Survived: " + currentWave + "\nEnemies Killed: " + kill + "\nTimes Downed: " + downs;
-        StartCoroutine(EndGameUpdate());
     }
 
     public void ReturnToMenu()
@@ -44,7 +51,7 @@ public class EndGame : MonoBehaviour
     public IEnumerator EndGameUpdate()
     {
         WWWForm form = new WWWForm();
-        form.AddField("username", player.NickName);
+        form.AddField("username", PhotonNetwork.NickName);
         form.AddField("kills", kill);
         form.AddField("downed", downs);
         form.AddField("wave", currentWave);
@@ -59,7 +66,6 @@ public class EndGame : MonoBehaviour
             }
             else
             {
-                Debug.Log("Data sent successfully");
                 Debug.Log((www.downloadHandler.text));
             }    
         }

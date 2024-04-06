@@ -1032,6 +1032,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7218ea23433a4b74e90cbe77d4cff095, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  brokenGlass: {fileID: 8497841886196765622, guid: cfb0197fa004cb54396c5d19b2b95c96, type: 3}
+  glassID: 
 --- !u!208 &5261901511881229436
 NavMeshObstacle:
   m_ObjectHideFlags: 0
@@ -1862,6 +1864,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7218ea23433a4b74e90cbe77d4cff095, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  brokenGlass: {fileID: 8497841886196765622, guid: cfb0197fa004cb54396c5d19b2b95c96, type: 3}
+  glassID: 
 --- !u!114 &1124810213771016117
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2023,6 +2027,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7218ea23433a4b74e90cbe77d4cff095, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  brokenGlass: {fileID: 8497841886196765622, guid: cfb0197fa004cb54396c5d19b2b95c96, type: 3}
+  glassID: 
 --- !u!82 &1502555117232065664
 AudioSource:
   m_ObjectHideFlags: 0
@@ -2290,7 +2296,7 @@ MonoBehaviour:
   Door: {fileID: 2517306909723630869}
   openSound: {fileID: 8300000, guid: b52044b26fc917247b6fd1eb828e7f88, type: 3}
   CustomRotation: -125
-  doorId: 
+  doorID: 
 --- !u!208 &7834988486241490044
 NavMeshObstacle:
   m_ObjectHideFlags: 0
@@ -2608,6 +2614,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7218ea23433a4b74e90cbe77d4cff095, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  brokenGlass: {fileID: 8497841886196765622, guid: cfb0197fa004cb54396c5d19b2b95c96, type: 3}
+  glassID: 
 --- !u!82 &2050916067134376932
 AudioSource:
   m_ObjectHideFlags: 0
@@ -3976,6 +3984,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7218ea23433a4b74e90cbe77d4cff095, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  brokenGlass: {fileID: 8497841886196765622, guid: cfb0197fa004cb54396c5d19b2b95c96, type: 3}
+  glassID: 
 --- !u!82 &4273062981655021847
 AudioSource:
   m_ObjectHideFlags: 0
@@ -5636,6 +5646,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7218ea23433a4b74e90cbe77d4cff095, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  brokenGlass: {fileID: 8497841886196765622, guid: cfb0197fa004cb54396c5d19b2b95c96, type: 3}
+  glassID: 
 --- !u!114 &1916751351432711367
 MonoBehaviour:
   m_ObjectHideFlags: 0

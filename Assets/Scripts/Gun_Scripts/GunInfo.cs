@@ -9,7 +9,6 @@ public class GunInfo : ItemInfo
     public bool allowButtonHold;
 
     [Header("Graphics")]
-    public GameObject projectile;
     public GameObject bulletTrail;
     public GameObject muzzleFlash;
     public GameObject bulletImpact;

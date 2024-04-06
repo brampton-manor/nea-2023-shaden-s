@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
 
-public class Profile : MonoBehaviour
+public class Profile: MonoBehaviour
 {
     public static Profile Instance;
     public TMP_Text UsernameText;

@@ -3,6 +3,8 @@ using System.Collections;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using System.Net.Mail;
+using System.Collections.Generic;
 
 public class SingleShotGun : Gun
 {
@@ -21,6 +23,8 @@ public class SingleShotGun : Gun
     [SerializeField] PhotonView PlayerPV;
     [SerializeField] PlayerController player;
 
+    [SerializeField] private List<List<GameObject>> attachmentsByOrb;
+
     [SerializeField] Camera cam;
 
     [SerializeField] GameObject orbs;
@@ -31,7 +35,6 @@ public class SingleShotGun : Gun
     [SerializeField] TMP_Text reloadText;
     [SerializeField] Image reloadObject;
     [SerializeField] Image reloadBar;
-    [SerializeField] Image crosshair;
     [SerializeField] Image hitmarker;
     [SerializeField] Image crithitmarker;
 
@@ -40,9 +43,13 @@ public class SingleShotGun : Gun
     [SerializeField] Transform activeWeapon;
     [SerializeField] Vector3 weaponPosition;
     
-
     [SerializeField] AudioClip hitmarkerSound;
     [SerializeField] AudioClip killSound;
+
+    [SerializeField] Dictionary<char, int> attachmentIndexes = new Dictionary<char, int>();
+    [SerializeField] GameObject sights;
+    [SerializeField] GameObject muzzles;
+    [SerializeField] GameObject lasers;
 
     int orbLayerMask = 1 << 17;
 
@@ -125,20 +132,16 @@ public class SingleShotGun : Gun
         targetRotation = Vector3.Lerp(targetRotation, Vector3.zero, ((GunInfo)itemInfo).returnSpeed * Time.deltaTime);
         currentRotation = Vector3.Slerp(currentRotation, targetRotation, ((GunInfo)itemInfo).snappiness * Time.fixedDeltaTime);
 
-        cam.transform.localRotation = Quaternion.Lerp(cam.transform.localRotation, Quaternion.Euler(currentRotation), ((GunInfo)itemInfo).snappiness * Time.deltaTime);
-        activeWeapon.localRotation = Quaternion.Lerp(activeWeapon.transform.localRotation, Quaternion.Euler(currentRotation), ((GunInfo)itemInfo).snappiness * Time.deltaTime);
-
         if (Input.GetMouseButton(1))
         {
             aiming = true;
-            crosshair.gameObject.SetActive(false);
         }
         else
         {
             aiming = false;
-            crosshair.gameObject.SetActive(true);
-
-            activeWeapon.localRotation = Quaternion.Euler(currentRotation);
+            //cam.transform.localRotation = Quaternion.Lerp(cam.transform.localRotation, Quaternion.Euler(currentRotation), ((GunInfo)itemInfo).snappiness * Time.deltaTime);
+            //activeWeapon.localRotation = Quaternion.Lerp(activeWeapon.transform.localRotation, Quaternion.Euler(currentRotation), ((GunInfo)itemInfo).snappiness * Time.deltaTime);
+            //activeWeapon.localRotation = Quaternion.Euler(currentRotation);
         }
     }
 
@@ -210,18 +213,22 @@ public class SingleShotGun : Gun
         currentAmmo -= 1;
         readyToShoot = false;
         shooting = true;
-        RecoilFire();
+        GetComponent<RecoilSystem>().ApplyRecoil();
         Ray ray = cam.ViewportPointToRay(new Vector3(0.5f, 0.5f));
         if (aiming) ray.origin = aimpoint.transform.position;
         if (!aiming) ray.origin = cam.transform.position;
         if (Physics.Raycast(ray, out RaycastHit hit)) // Range?
         {
             if (hit.collider.gameObject.layer == 8) hitItem = true;
-            else if (hit.collider.gameObject.layer == 19) hit.collider.GetComponent<IDamageable>().TakeDamage(damage);
-            else if (hit.collider.gameObject.layer == 7 || (hit.collider.gameObject.tag == "Enemy")) hitEnemy = true;
-            else if (hit.collider.gameObject.layer == 7 && (hit.collider.gameObject.tag == "EnemyCrit")) hitCrit = true;
-            else if (hit.collider.gameObject.tag == "Player") hitPlayer = true;
-            else if (hit.collider.gameObject.layer == 12)
+            else if (hit.collider.gameObject.layer == 19) hit.collider.GetComponent<IDamageable>().TakeDamage(damage); // Barrel Layer
+            else if (hit.collider.gameObject.tag == "EnemyCrit")
+            {
+                hitEnemy = true;
+                hitCrit = true;
+            }
+            else if (hit.collider.gameObject.layer == 7) hitEnemy = true;
+            else if (hit.collider.gameObject.layer == 3) hitPlayer = true;
+            else if (hit.collider.gameObject.layer == 12) // Glass Layer
             {
                 hit.collider.gameObject.GetComponent<Glass>().Shatter(hit.point);
                 player.PlayShatter();
@@ -238,7 +245,7 @@ public class SingleShotGun : Gun
         }
         else hit.point = ray.GetPoint(50);
 
-        PV.RPC("RPC_Shoot", RpcTarget.All, hit.point, hit.normal);
+        PV.RPC(nameof(RPC_Shoot), RpcTarget.All, hit.point, hit.normal);
 
     }
 
@@ -246,15 +253,17 @@ public class SingleShotGun : Gun
     void RPC_Shoot(Vector3 hitPosition, Vector3 hitNormal)
     {
         PlayClip(((GunInfo)itemInfo).shootSound);
-        Instantiate(((GunInfo)itemInfo).muzzleFlash, firePoint.position, Quaternion.identity);
-        Instantiate(((GunInfo)itemInfo).bulletShell, firePoint.position, Quaternion.identity);
+        GameObject muzzleFlash = Instantiate(((GunInfo)itemInfo).muzzleFlash, firePoint.position, Quaternion.identity);
+        GameObject bulletShell = Instantiate(((GunInfo)itemInfo).bulletShell, firePoint.position, Quaternion.identity);
         TrailRenderer trail = Instantiate(BulletTrail, firePoint.position, Quaternion.identity);
-        StartCoroutine(SpawnTrail(trail, hitPosition));
+        if (gameObject.activeInHierarchy) StartCoroutine(SpawnTrail(trail, hitPosition));
+        Destroy(muzzleFlash, 0.5f);
+        Destroy(bulletShell, 0.5f);
 
         if (hitItem) hitItem = false;
         else
         {
-            if (hitEnemy || hitPlayer)
+            if (hitEnemy || hitPlayer || hitCrit)
             {
                 Instantiate(((GunInfo)itemInfo).bloodImpact, hitPosition, Quaternion.identity);
                 if (!hitDead)
@@ -291,6 +300,27 @@ public class SingleShotGun : Gun
         hitCrit = false;
         hitDead = false;
         Invoke("ResetShot", ((GunInfo)itemInfo).timeBetweenShots);
+    }
+
+    public void UpdateAttachments(string identifier, int index)
+    {
+        PV.RPC(nameof(RPC_UpdateAttachments), RpcTarget.All, identifier, index);
+    }
+
+    [PunRPC]
+    void RPC_UpdateAttachments(string identifier, int index)
+    {
+        if (identifier == "s") UpdateAttachment(sights, index);
+        else if (identifier == "m") UpdateAttachment(muzzles, index);
+        else if (identifier == "l") UpdateAttachment(lasers, index);
+        else return;
+    }
+
+    void UpdateAttachment(GameObject attachmentPrefabs, int index)
+    { 
+        attachmentPrefabs.transform.GetChild(index).gameObject.SetActive(false);
+        index = (index + 1) % attachmentPrefabs.transform.childCount;
+        attachmentPrefabs.transform.GetChild(index).gameObject.SetActive(true);
     }
 
     IEnumerator SpawnTrail(TrailRenderer Trail, Vector3 hitPoint)

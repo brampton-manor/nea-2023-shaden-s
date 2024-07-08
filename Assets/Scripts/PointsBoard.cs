@@ -11,10 +11,17 @@ public class PointsBoard : MonoBehaviour
 
     public void AddItem(string text)
     {
-        GameObject item = Instantiate(PointsPrefab, container);
-        TMP_Text textComponent = item.GetComponent<TMP_Text>();
-        textComponent.text = text;
-        StartCoroutine(FadeTextToZeroAlpha(2, textComponent));
+        if (container.gameObject.activeSelf)
+        {
+            GameObject item = Instantiate(PointsPrefab, container);
+            TMP_Text textComponent = item.GetComponent<TMP_Text>();
+            textComponent.text = text;
+            StartCoroutine(FadeTextToZeroAlpha(2, textComponent));
+        }
+        else
+        {
+            Debug.LogWarning("Container is not active. Unable to add item.");
+        }
     }
 
     private IEnumerator FadeTextToZeroAlpha(float t, TMP_Text i)

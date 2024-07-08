@@ -683,7 +683,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   InteractableName: Sniper
-  requiredPoints: 300
+  requiredPoints: 1000
   itemIndex: 2
 --- !u!1 &2840941738574361241
 GameObject:

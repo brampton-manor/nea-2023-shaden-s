@@ -472,7 +472,7 @@ MonoBehaviour:
   Door: {fileID: 888203861941518754}
   openSound: {fileID: 8300000, guid: b52044b26fc917247b6fd1eb828e7f88, type: 3}
   CustomRotation: 100
-  doorId: 
+  doorID: 
 --- !u!82 &5064277538515114379
 AudioSource:
   m_ObjectHideFlags: 0
@@ -691,7 +691,7 @@ MonoBehaviour:
   Door: {fileID: 1038195471321836977}
   openSound: {fileID: 8300000, guid: b52044b26fc917247b6fd1eb828e7f88, type: 3}
   CustomRotation: 100
-  doorId: 
+  doorID: 
 --- !u!82 &5843867625874359656
 AudioSource:
   m_ObjectHideFlags: 0
@@ -1122,7 +1122,7 @@ MonoBehaviour:
   Door: {fileID: 3085541388780003578}
   openSound: {fileID: 8300000, guid: b52044b26fc917247b6fd1eb828e7f88, type: 3}
   CustomRotation: 100
-  doorId: 
+  doorID: 
 --- !u!82 &7639778785568859321
 AudioSource:
   m_ObjectHideFlags: 0
@@ -1525,7 +1525,7 @@ MonoBehaviour:
   Door: {fileID: 3541664493422645618}
   openSound: {fileID: 8300000, guid: b52044b26fc917247b6fd1eb828e7f88, type: 3}
   CustomRotation: -100
-  doorId: 
+  doorID: 
 --- !u!82 &4763445392471577530
 AudioSource:
   m_ObjectHideFlags: 0
@@ -1933,7 +1933,7 @@ MonoBehaviour:
   Door: {fileID: 3818870192034628845}
   openSound: {fileID: 8300000, guid: b52044b26fc917247b6fd1eb828e7f88, type: 3}
   CustomRotation: -100
-  doorId: 
+  doorID: 
 --- !u!82 &1923348304419746315
 AudioSource:
   m_ObjectHideFlags: 0
@@ -2258,7 +2258,7 @@ MonoBehaviour:
   Door: {fileID: 4491657934120162473}
   openSound: {fileID: 8300000, guid: b52044b26fc917247b6fd1eb828e7f88, type: 3}
   CustomRotation: -100
-  doorId: 
+  doorID: 
 --- !u!82 &1786231399522821792
 AudioSource:
   m_ObjectHideFlags: 0
@@ -2615,7 +2615,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ArmourSound: {fileID: 8300000, guid: d60e80f4b3bba634ba71b887c4d473c0, type: 3}
   name: Light Armour
-  requiredPoints: 50
+  requiredPoints: 75
   armourAmount: 25
 --- !u!82 &1659932962390840412
 AudioSource:
@@ -3233,7 +3233,7 @@ MonoBehaviour:
   Door: {fileID: 7873942816218259059}
   openSound: {fileID: 8300000, guid: b52044b26fc917247b6fd1eb828e7f88, type: 3}
   CustomRotation: -100
-  doorId: 
+  doorID: 
 --- !u!82 &6036184472785070322
 AudioSource:
   m_ObjectHideFlags: 0
@@ -3667,7 +3667,7 @@ MonoBehaviour:
   Door: {fileID: 8763441998715507169}
   openSound: {fileID: 8300000, guid: b52044b26fc917247b6fd1eb828e7f88, type: 3}
   CustomRotation: 100
-  doorId: 
+  doorID: 
 --- !u!82 &5303994381649377520
 AudioSource:
   m_ObjectHideFlags: 0

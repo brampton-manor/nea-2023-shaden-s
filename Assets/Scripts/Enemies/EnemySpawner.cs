@@ -10,8 +10,8 @@ using System.Linq;
 public class EnemySpawner : MonoBehaviourPunCallbacks
 {
     public static EnemySpawner Instance;
-    public enum SpawnState {SPAWNING, WAITING, COUNTING, COMPLETED};
-    //VARIABLES
+    public enum SpawnState { SPAWNING, WAITING, COUNTING, COMPLETED };
+
     [SerializeField] private Wave[] waves;
 
     [SerializeField] private float timeBetweenWaves = 3f;
@@ -24,7 +24,7 @@ public class EnemySpawner : MonoBehaviourPunCallbacks
     public int currentWave;
     int enemyCount;
     int pointReward;
-    int bruteZombiesToSpawn = 1; 
+    int bruteZombiesToSpawn = 1;
     int bruteZombiesSpawned = 0;
 
     public List<Enemy> enemyList;
@@ -32,7 +32,7 @@ public class EnemySpawner : MonoBehaviourPunCallbacks
     PhotonView PV;
 
     public List<Vector3> spawners;
-    
+
     bool spawnsGenerated = false;
 
     void Awake()
@@ -60,10 +60,7 @@ public class EnemySpawner : MonoBehaviourPunCallbacks
 
         spawners = mapGenerator.GetEdgeCellPositions();
         spawnsGenerated = true;
-
     }
-
-
 
     public string GetState()
     {
@@ -88,8 +85,6 @@ public class EnemySpawner : MonoBehaviourPunCallbacks
             if (state == SpawnState.COMPLETED) return;
             if (state == SpawnState.WAITING)
             {
-                //waveText.text = "WAVE " + currentWaveString;
-                //CHECK IF ALL ENEMIES DEAD
                 if (!EnemiesAreDead())
                     return;
                 else
@@ -98,25 +93,17 @@ public class EnemySpawner : MonoBehaviourPunCallbacks
 
             if (waveCountDown <= 0)
             {
-                //Spawn Enemies
                 if (state != SpawnState.SPAWNING)
                 {
-                    //SPAWN ENEMIES
                     PV.RPC("SpawnWaveRPC", RpcTarget.All);
                 }
             }
             else
             {
-                //waveText.text = waveCountDown.ToString();
                 waveCountDown -= Time.deltaTime;
             }
-            //if(Input.GetKeyDown(KeyCode.P))
-            //{
-            //SpawnZombie();
-            //}
         }
     }
-
 
     [PunRPC]
     public void SpawnWaveRPC()
@@ -142,25 +129,27 @@ public class EnemySpawner : MonoBehaviourPunCallbacks
 
         yield break;
     }
+
     public void SpawnZombie()
     {
         if (PV.IsMine)
         {
             int randomInt = UnityEngine.Random.Range(1, spawners.Count);
-            PV.RPC("SpawnZombieRPC", RpcTarget.MasterClient, randomInt);
+            PV.RPC("SpawnZombieRPC", RpcTarget.MasterClient, randomInt, currentWave);
         }
-
     }
 
     [PunRPC]
-    public void SpawnZombieRPC(int randomInt)
+    public void SpawnZombieRPC(int randomInt, int waveNumber)
     {
         Vector3 randomSpawner = spawners[randomInt];
         GameObject newEnemy = PhotonNetwork.Instantiate(Path.Combine("PhotonPrefabs", "Zombie"), randomSpawner, Quaternion.identity);
-        Enemy newEnemyStats = newEnemy.GetComponent<Enemy>();
+        Zombie newEnemyStats = newEnemy.GetComponent<Zombie>();
+        newEnemyStats.SetSpeed(newEnemyStats.agent.speed, waveNumber); // Adjust speed based on wave number
         enemyList.Add(newEnemyStats);
 
-        if (currentWave % 3 == 0 && bruteZombiesSpawned < bruteZombiesToSpawn)
+        // Spawn brute zombies starting from wave 3 and every third wave thereafter
+        if (currentWave >= 3 && (currentWave - 3) % 3 == 0 && bruteZombiesSpawned < bruteZombiesToSpawn)
         {
             GameObject bruteZombie = PhotonNetwork.Instantiate(Path.Combine("PhotonPrefabs", "BruteZombie"), randomSpawner, Quaternion.identity);
             enemyList.Add(bruteZombie.GetComponent<Enemy>());
@@ -172,7 +161,7 @@ public class EnemySpawner : MonoBehaviourPunCallbacks
     {
         foreach (Enemy enemy in enemyList)
         {
-            if (!enemy.isDead) 
+            if (!enemy.isDead)
                 return false;
         }
         return true;
@@ -195,10 +184,9 @@ public class EnemySpawner : MonoBehaviourPunCallbacks
         waveCountDown = timeBetweenWaves;
 
         currentWave++;
-        if (currentWave % 3 == 0) bruteZombiesToSpawn++;
-
-
+        if (currentWave >= 3 && currentWave % 3 == 0) bruteZombiesToSpawn++;
     }
+
     void CompleteWave()
     {
         PV.RPC("CompleteWaveRPC", RpcTarget.All);

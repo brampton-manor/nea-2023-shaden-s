@@ -188,7 +188,7 @@ MonoBehaviour:
   maxHealth: 200
   currentHealth: 200
   isDead: 0
-  PointReward: 75
+  PointReward: 100
   minAngle: 0
   maxAngle: 0
   agent: {fileID: 6763496842879831822}
@@ -201,12 +201,12 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 8
   walkPoint: {x: 0, y: 0, z: 0}
-  walkPointRange: 50
+  walkPointRange: 100
   timeBetweenAttacks: 3
   projectile: {fileID: 0}
   sightRange: 99999
   attackRange: 2
-  damage: 40
+  damage: 50
 --- !u!1 &6618983663463049158
 GameObject:
   m_ObjectHideFlags: 0

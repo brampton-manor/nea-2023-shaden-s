@@ -1,9 +1,6 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using Photon.Pun;
-using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 public class InteractManager : MonoBehaviour
@@ -60,7 +57,7 @@ public class InteractManager : MonoBehaviour
             {
                 if (playerController.isDowned)
                 {
-                    player.ReviveUI(playerController);
+                    player.ReviveUI();
                     if (Input.GetKey(KeyCode.E))
                     {
                         interactObject.gameObject.SetActive(true);

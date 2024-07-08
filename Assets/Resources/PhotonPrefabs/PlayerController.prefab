@@ -4275,6 +4275,7 @@ MonoBehaviour:
   ItemIcon: {fileID: 691206420054842441}
   PlayerObj: {fileID: 1981001369674771259}
   ui: {fileID: 4317884239502099979}
+  sniperCamera: {fileID: 7419100468567162544}
   InteractableWindow: {fileID: 2462803459661861318}
   cameraHolder: {fileID: 5440378646460844306}
   itemHolder: {fileID: 5341592738060498428}
@@ -10497,7 +10498,7 @@ MonoBehaviour:
   itemInfo: {fileID: 11400000, guid: 326db5428ecb3d146b5fe2a69634b94b, type: 2}
   itemGameObject: {fileID: 5522951430679564511}
   allowButtonHold: 0
-  isAbleToBeUsed: 1
+  isAbleToBeUsed: 0
   PlayerPV: {fileID: 8632839822268315286}
   player: {fileID: 1200843220999049888}
   cam: {fileID: 1227340015195165170}
@@ -16208,7 +16209,7 @@ MonoBehaviour:
   itemInfo: {fileID: 11400000, guid: 832ae4e4aade60b4ca17c02b947947a0, type: 2}
   itemGameObject: {fileID: 3336795191768220903}
   allowButtonHold: 1
-  isAbleToBeUsed: 1
+  isAbleToBeUsed: 0
   PlayerPV: {fileID: 8632839822268315286}
   player: {fileID: 1200843220999049888}
   cam: {fileID: 1227340015195165170}

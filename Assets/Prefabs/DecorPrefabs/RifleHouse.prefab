@@ -3356,7 +3356,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   InteractableName: Rifle
-  requiredPoints: 200
+  requiredPoints: 250
   itemIndex: 1
 --- !u!1 &3906854238025514033
 GameObject:

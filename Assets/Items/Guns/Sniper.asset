@@ -15,7 +15,6 @@ MonoBehaviour:
   ItemName: Sniper
   ItemIcon: {fileID: 21300000, guid: 470c60bb00c04a840a3607711d5637a8, type: 3}
   allowButtonHold: 0
-  projectile: {fileID: 0}
   bulletTrail: {fileID: 3283993877217940934, guid: 273919da2662d614895d59c2ed413181, type: 3}
   muzzleFlash: {fileID: 748781637555137343, guid: ab3efdcb3e4feb14d882aa1cac56309f, type: 3}
   bulletImpact: {fileID: 2462405574108921655, guid: e6d36bb0ebdf6cc4dacdeee8b6e8a0ce, type: 3}
@@ -34,4 +33,4 @@ MonoBehaviour:
   returnSpeed: 3
   timeBetweenShots: 2.5
   reloadTime: 5
-  shootSound: {fileID: 0}
+  shootSound: {fileID: 8300000, guid: f9eb44b85c96be5429737d4dcadbfa3b, type: 3}

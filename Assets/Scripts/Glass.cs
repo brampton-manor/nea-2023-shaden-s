@@ -1,9 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
-using UnityEngine.ProBuilder.Shapes;
-using UnityEngine.UIElements;
 
 public class Glass : MonoBehaviourPun
 {

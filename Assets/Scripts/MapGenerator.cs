@@ -1,14 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Globalization;
-using UnityEngine.AI;
 using UnityEngine;
 using Unity.AI.Navigation;
 using Photon.Pun;
 using System.Text;
-using System.Linq;
-using System;
-
 public class MapGenerator : MonoBehaviour
 {
     [SerializeField] private Light directionalLight;

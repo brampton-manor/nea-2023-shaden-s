@@ -5,13 +5,6 @@ using UnityEngine.Networking;
 
 public class Web : MonoBehaviour
 {
-    void Start()
-    {
-        //StartCoroutine(GetUsers());
-        //StartCoroutine(Login("testuser", "123"));
-        //StartCoroutine(RegisterUser("test3", "123"));
-    }
-
     public IEnumerator GetUsers()
     {
         using (UnityWebRequest www = UnityWebRequest.Get("http://localhost/NEA/GetUsers.php"))

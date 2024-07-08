@@ -1,9 +1,6 @@
 using UnityEngine;
-using Photon.Pun;
-using UnityEngine.ProBuilder.Shapes;
-using UnityEngine.UIElements;
 
-public class ExplosiveBarrel : Destructible, IDamageable
+public class ExplosiveBarrel : Destructible
 {
     [SerializeField] GameObject explosionEffect;
     [SerializeField] GameObject destroyedBarrel;

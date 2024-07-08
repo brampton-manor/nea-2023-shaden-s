@@ -13,9 +13,6 @@ public class SingleShotGun : Gun
     int magsize;
     float damage;
 
-    float spreadFactor = 2f; // Adjust as needed
-    float aimingSpreadFactor = 0.5f;
-
     private float currentDelay;
     private TrailRenderer BulletTrail;
 
@@ -53,9 +50,6 @@ public class SingleShotGun : Gun
 
     int orbLayerMask = 1 << 17;
 
-    Vector3 currentRotation;
-    Vector3 targetRotation;
-
     AudioSource audioSource;
 
     bool hitEnemy = false;
@@ -63,7 +57,7 @@ public class SingleShotGun : Gun
     bool hitDead = false;
     bool hitPlayer = false;
     bool hitItem = false;
-    bool shooting, readyToShoot, reloading, aiming;
+    bool readyToShoot, reloading, aiming;
 
     public bool isInspecting;
     private void Awake()
@@ -129,44 +123,10 @@ public class SingleShotGun : Gun
 
     void CheckAiming()
     {
-        targetRotation = Vector3.Lerp(targetRotation, Vector3.zero, ((GunInfo)itemInfo).returnSpeed * Time.deltaTime);
-        currentRotation = Vector3.Slerp(currentRotation, targetRotation, ((GunInfo)itemInfo).snappiness * Time.fixedDeltaTime);
-
-        if (Input.GetMouseButton(1))
-        {
-            aiming = true;
-        }
-        else
-        {
-            aiming = false;
-            //cam.transform.localRotation = Quaternion.Lerp(cam.transform.localRotation, Quaternion.Euler(currentRotation), ((GunInfo)itemInfo).snappiness * Time.deltaTime);
-            //activeWeapon.localRotation = Quaternion.Lerp(activeWeapon.transform.localRotation, Quaternion.Euler(currentRotation), ((GunInfo)itemInfo).snappiness * Time.deltaTime);
-            //activeWeapon.localRotation = Quaternion.Euler(currentRotation);
-        }
+        if (Input.GetMouseButton(1)) aiming = true;
+        else aiming = false;
     }
 
-    public void RecoilFire()
-    {
-        float xSpread = Random.Range(-spreadFactor, spreadFactor);
-        float ySpread = Random.Range(-spreadFactor, spreadFactor);
-
-        float aimingXSpread = Random.Range(-aimingSpreadFactor, aimingSpreadFactor);
-        float aimingYSpread = Random.Range(-aimingSpreadFactor, aimingSpreadFactor);
-
-        Vector3 recoil = aiming
-            ? new Vector3(((GunInfo)itemInfo).recoilX, Random.Range(-((GunInfo)itemInfo).aimRecoilY, ((GunInfo)itemInfo).aimRecoilY), Random.Range(-((GunInfo)itemInfo).aimRecoilZ, ((GunInfo)itemInfo).aimRecoilZ))
-            : new Vector3(((GunInfo)itemInfo).recoilX + (aiming ? aimingXSpread : xSpread), Random.Range(-((GunInfo)itemInfo).recoilY + (aiming ? aimingYSpread : ySpread), ((GunInfo)itemInfo).recoilY + (aiming ? aimingYSpread : ySpread)), Random.Range(-((GunInfo)itemInfo).recoilZ + (aiming ? aimingXSpread : xSpread), ((GunInfo)itemInfo).recoilZ + (aiming ? aimingXSpread : xSpread)));
-
-        if (aiming)
-        {
-            targetRotation += recoil;
-        }
-        else
-        {
-            // Apply spread to rotation when not aiming
-            targetRotation += recoil;
-        }
-    }
     void SetFieldOfView(float fov)
     {
         cam.fieldOfView = fov;
@@ -212,7 +172,6 @@ public class SingleShotGun : Gun
     {
         currentAmmo -= 1;
         readyToShoot = false;
-        shooting = true;
         GetComponent<RecoilSystem>().ApplyRecoil();
         Ray ray = cam.ViewportPointToRay(new Vector3(0.5f, 0.5f));
         if (aiming) ray.origin = aimpoint.transform.position;
@@ -364,7 +323,6 @@ public class SingleShotGun : Gun
     private void ResetShot()
     {
         readyToShoot = true;
-        shooting = false;
     }
 
     public override void Reload()
@@ -375,7 +333,6 @@ public class SingleShotGun : Gun
             reloadObject.gameObject.SetActive(true);
             currentDelay = ((GunInfo)itemInfo).reloadTime;
             readyToShoot = false;
-            shooting = false;
             reloadText.text = "RELOADING";
             Invoke("ReloadFinished", ((GunInfo)itemInfo).reloadTime);
         }

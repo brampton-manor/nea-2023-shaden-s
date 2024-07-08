@@ -10,7 +10,6 @@ public class Zombie : Enemy
 {
     [SerializeField] int PointReward;
 
-
     public float minAngle = 0f;
     public float maxAngle = 0f;
     public NavMeshAgent agent;
@@ -31,10 +30,6 @@ public class Zombie : Enemy
     // States
     public float sightRange, attackRange;
     public int damage;
-    bool isPatrolling = false;
-
-    private float checkRate = 0.5f;
-    private float nextCheck;
 
     void Awake()
     {
@@ -44,33 +39,24 @@ public class Zombie : Enemy
 
     public void Update()
     {
-        if (Time.time > nextCheck)
-        {
-            nextCheck = Time.time + checkRate;
-            PerformAI();
-        }
-    }
-
-    void PerformAI()
-    {
-        if (currentHealth <= 0 && !isDead) Die();
         if (isDead) return;
+        if (currentHealth <= 0 && !isDead) Die();
 
-        isPatrolling = false;
+        FindAndSetNearestPlayer();
 
-        // Optimize player finding
-        if (player == null || !IsPlayerValid(player)) FindAndSetNearestPlayer();
-
-        if (player == null) Patrolling();
+        if (player == null)
+        {
+            Patrolling();
+        }
         else
         {
             if (IsPlayerNextToEnemy()) AttackPlayer();
             else ChasePlayer();
         }
     }
+
     void FindAndSetNearestPlayer()
     {
-        // This should be replaced with a more efficient player tracking system
         GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
         player = FindNearestPlayer(players);
     }
@@ -130,13 +116,12 @@ public class Zombie : Enemy
 
     void Patrolling()
     {
-        isPatrolling = true;
         PV.RPC("PatrollingRPC", RpcTarget.AllBuffered);
     }
 
     void SearchWalkPoint()
     {
-        //Calculate random point in range
+        // Calculate random point in range
         float randomZ = Random.Range(-walkPointRange, walkPointRange);
         float randomX = Random.Range(-walkPointRange, walkPointRange);
 
@@ -161,7 +146,6 @@ public class Zombie : Enemy
     {
         agent.SetDestination(transform.position);
         PV.RPC("AttackPlayerRPC", RpcTarget.AllBuffered);
-
     }
 
     [PunRPC]
@@ -188,7 +172,6 @@ public class Zombie : Enemy
     {
         alreadyAttacked = false;
     }
-
 
     public override void TakeDamage(float damage)
     {
@@ -234,5 +217,10 @@ public class Zombie : Enemy
     public override float GetHealth()
     {
         return currentHealth;
+    }
+
+    public void SetSpeed(float baseSpeed, int waveNumber)
+    {
+        agent.speed = baseSpeed * Mathf.Pow(1.01f, waveNumber);
     }
 }

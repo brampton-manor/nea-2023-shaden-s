@@ -11,7 +11,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
     [SerializeField] UnityEngine.UI.Image healthbarImage, armourBarImage;
     [SerializeField] TMP_Text healthbarText, armourbarText, ammo, waveText, lowReloadText, ItemName, InteractableName, PointsText, PoorText;
     [SerializeField] Image ItemIcon;
-    [SerializeField] GameObject PlayerObj, ui, InteractableWindow, cameraHolder, itemHolder, AliveScreen, HitScreen;
+    [SerializeField] GameObject PlayerObj, ui, sniperCamera,InteractableWindow, cameraHolder, itemHolder, AliveScreen, HitScreen;
     [SerializeField] Transform headTransform;
     [SerializeField] public Canvas PauseMenu, SettingsMenu, EndGameScreen, Scoreboard, DownedScreen;
     [SerializeField] float mouseSensitivity, sprintSpeed, walkSpeed, jumpForce, smoothTime;
@@ -71,8 +71,8 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
 
     void Awake()
     {
-        UnityEngine.Cursor.visible = false;
-        UnityEngine.Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
 
         rb = GetComponent<Rigidbody>();
         PV = GetComponent<PhotonView>();
@@ -99,6 +99,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
             Destroy(GetComponentInChildren<Camera>().gameObject);
             Destroy(rb);
             Destroy(ui);
+            Destroy(sniperCamera);
         }
 
         Controllable = true;
@@ -282,8 +283,8 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
         SettingsMenu.gameObject.SetActive(false);
         state = PlayerState.UNPAUSED;
         Controllable = true;
-        UnityEngine.Cursor.visible = false;
-        UnityEngine.Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
     }
 
     public void Pause()
@@ -291,8 +292,8 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
         PauseMenu.gameObject.SetActive(true);
         state = PlayerState.PAUSED;
         Controllable = false;
-        UnityEngine.Cursor.visible = true;
-        UnityEngine.Cursor.lockState = CursorLockMode.Confined;
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.Confined;
     }
 
     public void PlayClip(AudioClip clip)
@@ -390,7 +391,7 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
 
     public void AddPointsUI(string text)
     {
-        pointsBoard.AddItem(text);
+        if (pointsBoard.gameObject.activeSelf && !isDowned && !isDead) pointsBoard.AddItem(text);
     }
 
     void Look()
@@ -520,8 +521,8 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
             AliveScreen.gameObject.SetActive(false);
             itemHolder.gameObject.SetActive(false);
 
-            UnityEngine.Cursor.visible = true;
-            UnityEngine.Cursor.lockState = CursorLockMode.Confined;
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.Confined;
         }
     }
 
@@ -552,10 +553,9 @@ public class PlayerController : MonoBehaviourPunCallbacks, IDamageable
         itemHolder.gameObject.SetActive(false);
     }
 
-    public void ReviveUI(PlayerController targetPlayer)
+    public void ReviveUI()
     {
         InteractableWindow.gameObject.SetActive(true);
-        InteractableName.text = targetPlayer.username;
         PointsText.text = "Hold E to revive";
 
     }
